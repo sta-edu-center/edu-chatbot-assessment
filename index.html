@@ -460,9 +460,22 @@
 
   async function finish() {
     finishedAt = new Date();
-    const passScore = Number(passScoreSel.value);
-    const pass = score >= passScore;
-    const resultLabel = pass ? "PASS (이수)" : "FAIL (미이수)";
+  const passed = score >= PASS_SCORE;
+
+  setBadge(passed ? "ok" : "no", passed ? "Pass" : "Fail");
+
+  // 결과 말풍선 생성
+  const bubble = addMsg(
+    "bot",
+    `총점: ${score}점\n결과: ${passed ? "PASS" : "FAIL"}\n(기준: ${PASS_SCORE}점 이상 Pass)`
+  );
+
+  // ⭐ 핵심: Pass / Fail에 따라 class 부여
+  bubble.classList.add("result");
+  bubble.classList.add(passed ? "pass" : "fail");
+
+  showReview();
+}
 
     setStatus(resultLabel, pass ? "success" : "danger");
     addBubble("모든 문항이 완료되었습니다 ✅", "bot");
