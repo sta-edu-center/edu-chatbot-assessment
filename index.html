@@ -166,31 +166,12 @@
 </div>
 
 <script>
-  // =========================
-  // 제출 엔드포인트 (Google Apps Script)
-  // =========================
-async function submitToSheets(payload) {
-    if (!SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.includes("여기에_")) {
-      addBubble("⚠️ 관리자 설정 필요: 응답 저장 URL(SUBMIT_ENDPOINT)이 아직 설정되지 않았습니다.", "bot");
-      return { ok: false, error: "ENDPOINT_NOT_SET" };
-    }
-    try {
-      const res = await fetch(SUBMIT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-      const json = await res.json().catch(() => ({}));
-      return { ok: res.ok && json.ok === true, ...json };
-    } catch (e) {
-      return { ok: false, error: String(e) };
-    }
-  }
+  // ✅ 2) 제출 엔드포인트 설정 완료
+  const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
   // =========================
-  // 문제/정답 데이터 (A set)
-  // 1 a, 2 c, 3 b, 4 b, 5 c, 6 c, 7 a, 8 c, 9 d, 10 c
-  // answer 인덱스: a=0, b=1, c=2, d=3
+  // 문제/정답 데이터
+  // answer 키를 사용하여 정답 인덱스 지정 (0=a, 1=b, 2=c, 3=d)
   // =========================
   const QUESTIONS = [
     { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?",
@@ -230,13 +211,12 @@ async function submitToSheets(payload) {
       options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.","b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.","c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.","d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], answer: 2 },
   ];
 
-
-  const PASS_SCORE = 80;   // 80점 이상 Pass
-  const POINT_PER_Q = 10;  // 10문항 -> 100점
+  const PASS_SCORE = 80;
+  const POINT_PER_Q = 10;
 
   let current = -1;
   let score = 0;
-  let answers = []; // {qno, selectedIdx, correctIdx}
+  let answers = [];
   let submitInFlight = false;
 
   const chat = document.getElementById("chat");
@@ -247,39 +227,34 @@ async function submitToSheets(payload) {
   function addBubble(text, role = "bot") {
     const msg = document.createElement("div");
     msg.className = "msg " + role;
-
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.innerText = text;
-
     msg.appendChild(bubble);
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
-
     return bubble;
   }
 
-  function addQuestionBubble(qObj) {
+  function addQuestionBubble(qObj, idx) {
     const msg = document.createElement("div");
     msg.className = "msg bot";
-
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-
     const title = document.createElement("div");
     title.style.fontWeight = "900";
     title.style.marginBottom = "8px";
-    title.innerText = `Q${qObj.no}. ${qObj.q}`;
+    title.innerText = qObj.q; // 질문 텍스트 자체에 Q번호가 포함되어 있음
     bubble.appendChild(title);
 
     const btns = document.createElement("div");
     btns.className = "qbtns";
 
-    qObj.options.forEach((opt, idx) => {
+    qObj.options.forEach((opt, oIdx) => {
       const b = document.createElement("button");
       b.type = "button";
       b.innerText = opt;
-      b.addEventListener("click", () => chooseAnswer(idx, btns));
+      b.addEventListener("click", () => chooseAnswer(oIdx, btns));
       btns.appendChild(b);
     });
 
@@ -297,7 +272,6 @@ async function submitToSheets(payload) {
     return ["a","b","c","d"][i] || "";
   }
 
-  // ===== 응시월 드롭다운 (이번달 ~ +11개월) =====
   (function populateMonths(){
     const now = new Date();
     for (let i=0; i<12; i++){
@@ -314,17 +288,14 @@ async function submitToSheets(payload) {
 
   function start() {
     if (submitInFlight) return;
-
     const name = nameInput.value.trim();
     const examMonth = examMonthSelect.value;
-
     if (!name) { alert("성함을 입력해주세요."); nameInput.focus(); return; }
     if (!examMonth) { alert("응시월을 선택해주세요."); examMonthSelect.focus(); return; }
 
     current = -1;
     score = 0;
     answers = [];
-
     nameInput.disabled = true;
     examMonthSelect.disabled = true;
     startBtn.disabled = true;
@@ -339,28 +310,24 @@ async function submitToSheets(payload) {
       finish();
       return;
     }
-    addQuestionBubble(QUESTIONS[current]);
+    addQuestionBubble(QUESTIONS[current], current);
   }
 
   function chooseAnswer(selectedIdx, btnContainer){
     disableButtons(btnContainer);
-
     const qObj = QUESTIONS[current];
-    answers.push({ qno: qObj.no, selectedIdx, correctIdx: qObj.answerIdx });
-
+    
+    // ✅ 1) 정답 체크 시 answerIdx가 아닌 answer를 사용하도록 수정
+    answers.push({ qno: current + 1, selectedIdx, correctIdx: qObj.answer });
     addBubble(`선택: ${qObj.options[selectedIdx]}`, "user");
 
-    if (selectedIdx === qObj.answerIdx) score += POINT_PER_Q;
-
+    if (selectedIdx === qObj.answer) score += POINT_PER_Q;
     setTimeout(nextQuestion, 200);
   }
 
   async function submitToSheet(payload){
-    // Google Apps Script Web App 환경에 따라 CORS/리다이렉트가 다를 수 있어
-    // 1) JSON POST 시도 → 실패 시 2) x-www-form-urlencoded로 재시도
     const ac1 = new AbortController();
     const t1 = setTimeout(() => ac1.abort(), 12000);
-
     try{
       const res = await fetch(SUBMIT_ENDPOINT, {
         method: "POST",
@@ -374,15 +341,12 @@ async function submitToSheets(payload) {
       return res;
     }catch(e){
       clearTimeout(t1);
-
       const form = new URLSearchParams();
       for (const [k,v] of Object.entries(payload)){
         form.append(k, typeof v === "string" ? v : JSON.stringify(v));
       }
-
       const ac2 = new AbortController();
       const t2 = setTimeout(() => ac2.abort(), 12000);
-
       try{
         const res2 = await fetch(SUBMIT_ENDPOINT, {
           method: "POST",
@@ -404,19 +368,16 @@ async function submitToSheets(payload) {
   async function finish(){
     const name = nameInput.value.trim();
     const examMonth = examMonthSelect.value;
-
     const pass = score >= PASS_SCORE;
     const resultLabel = pass ? "PASS" : "FAIL";
 
     addBubble("모든 문항이 완료되었습니다 ✅", "bot");
-
     const resultBubble = addBubble(
       `이름: ${name}\n응시월: ${examMonth}\n총점: ${score}점\n결과: ${resultLabel}\n(기준: ${PASS_SCORE}점 이상 Pass)`,
       "bot"
     );
     resultBubble.classList.add("result", pass ? "pass" : "fail");
 
-    // ===== 제출 payload =====
     const submittedAt = new Date().toISOString();
     const payload = {
       name,
@@ -425,21 +386,17 @@ async function submitToSheets(payload) {
       passScore: PASS_SCORE,
       result: resultLabel,
       submittedAt,
-      answers // 상세 JSON
+      answers
     };
 
     addBubble("응답을 저장 중입니다…", "bot");
-
     submitInFlight = true;
     try{
       const res = await submitToSheet(payload);
-      if (!res || !res.ok){
-        addBubble("⚠️ 저장에 실패했습니다. (Apps Script 배포/권한/CORS 설정을 확인해주세요)", "bot");
-      }else{
-        addBubble("✅ 저장이 완료되었습니다.", "bot");
-      }
+      if (!res || !res.ok) addBubble("⚠️ 저장에 실패했습니다. (Apps Script 설정을 확인해주세요)", "bot");
+      else addBubble("✅ 저장이 완료되었습니다.", "bot");
     }catch(e){
-      addBubble("⚠️ 저장 중 오류가 발생했습니다. (네트워크 또는 Apps Script 설정 확인)", "bot");
+      addBubble("⚠️ 저장 중 오류가 발생했습니다.", "bot");
     }finally{
       submitInFlight = false;
     }
@@ -449,13 +406,15 @@ async function submitToSheets(payload) {
     QUESTIONS.forEach((q, i) => {
       const userSel = answers[i]?.selectedIdx;
       const userText = (userSel === undefined) ? "-" : q.options[userSel];
-      const correctText = q.options[q.answerIdx];
-      const ok = userSel === q.answerIdx;
+      
+      // ✅ 1) 리뷰 시 q.answerIdx를 q.answer로 수정
+      const correctText = q.options[q.answer];
+      const ok = userSel === q.answer;
 
       addBubble(
-        `Q${q.no}. ${q.q}\n` +
+        `${q.q}\n` +
         `- 내 답: ${userText} (${userSel === undefined ? "-" : idxToLetter(userSel)})\n` +
-        `- 정답: ${correctText} (${idxToLetter(q.answerIdx)})\n` +
+        `- 정답: ${correctText} (${idxToLetter(q.answer)})\n` +
         `- 결과: ${ok ? "O" : "X"}`,
         "bot"
       );
