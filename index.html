@@ -68,7 +68,7 @@
     border-color: rgba(37,99,235,.25);
   }
 
-  /* 결과 말풍선 */
+  /* ✅ 결과 말풍선 */
   .bubble.result{ font-weight: 800; }
   .bubble.result.pass{
     background:#ecfdf5;
@@ -143,7 +143,7 @@
 <div class="container">
   <div class="header">
     <div>
-      <div class="title">SW Testing Foundation 교육 - 훈련생 이수 평가</div>
+      <div class="title">Software Testing Foundation · 훈련생 이수 평가</div>
       <div class="sub">객관식 10문항 · 자동 채점 · 결과(PASS/FAIL) 안내 및 정답 리뷰 · Google Sheets 저장</div>
     </div>
   </div>
@@ -159,15 +159,21 @@
   </div>
 
   <div class="hint">
-    · 응시월은 2026년으로 한정됩니다.<br/>
+    · 응시월은 필수 선택입니다.<br/>
     · 진행 중에는 정오답을 표시하지 않으며, 마지막에 총점과 PASS/FAIL, 정답 리뷰가 제공됩니다.<br/>
     · 완료 후 응답이 Google Sheets로 저장됩니다.
   </div>
 </div>
 
 <script>
+  // =========================
+  // 제출 엔드포인트 (Google Apps Script)
+  // =========================
   const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
+  // =========================
+  // 문제/정답 데이터 (A set)
+  // =========================
   const QUESTIONS = [
     { no: 1, q: "다음 중 일반적인 테스트 목적에 해당하는 것은?", options: ["결함 예방", "결함 수정", "결함 제거", "장애 원인 분석"], answerIdx: 0 },
     { no: 2, q: "회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n\n다음 중 이 상황을 설명해주는 테스팅 원리는?", options: ["결함-부재는 오류이다.", "완벽한 테스팅은 불가능하다.", "테스트 효과는 줄어든다.", "테스팅은 정황에 의존적이다."], answerIdx: 2 },
@@ -181,12 +187,12 @@
     { no: 10, q: "자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?", options: ["도구의 효과에 대한 비현실적인 기대를 경계한다.", "도구 도입, 운용에 대한 자원을 충분히 고려한다.", "개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.", "규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], answerIdx: 2 }
   ];
 
-  const PASS_SCORE = 70;
-  const POINT_PER_Q = 10;
+  const PASS_SCORE = 70;   // 70점 이상 Pass
+  const POINT_PER_Q = 10;  // 10문항 -> 100점
 
   let current = -1;
   let score = 0;
-  let answers = [];
+  let answers = []; // {qno, selectedIdx, correctIdx}
   let submitInFlight = false;
 
   const chat = document.getElementById("chat");
@@ -197,18 +203,22 @@
   function addBubble(text, role = "bot") {
     const msg = document.createElement("div");
     msg.className = "msg " + role;
+
     const bubble = document.createElement("div");
     bubble.className = "bubble";
     bubble.innerText = text;
+
     msg.appendChild(bubble);
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
+
     return bubble;
   }
 
   function addQuestionBubble(qObj) {
     const msg = document.createElement("div");
     msg.className = "msg bot";
+
     const bubble = document.createElement("div");
     bubble.className = "bubble";
 
@@ -239,16 +249,21 @@
     btnContainer.querySelectorAll("button").forEach(b => b.disabled = true);
   }
 
-  function idxToLetter(i){ return ["a","b","c","d"][i] || ""; }
+  function idxToLetter(i){
+    return ["a","b","c","d"][i] || "";
+  }
 
-  // ===== 응시월 드롭다운 (2026년 고정) =====
-  (function populateMonths2026(){
-    for (let m = 1; m <= 12; m++){
-      const mm = String(m).padStart(2,"0");
-      const val = `2026-${mm}`;
+  // ===== 응시월 드롭다운 (이번달 ~ +11개월) =====
+  (function populateMonths(){
+    const now = new Date();
+    for (let i=0; i<12; i++){
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const value = `${y}-${m}`;
       const opt = document.createElement("option");
-      opt.value = val;
-      opt.textContent = val;
+      opt.value = value;
+      opt.textContent = value;
       examMonthSelect.appendChild(opt);
     }
   })();
@@ -276,69 +291,132 @@
 
   function nextQuestion(){
     current++;
-    if (current >= QUESTIONS.length){ finish(); return; }
+    if (current >= QUESTIONS.length){
+      finish();
+      return;
+    }
     addQuestionBubble(QUESTIONS[current]);
   }
 
   function chooseAnswer(selectedIdx, btnContainer){
     disableButtons(btnContainer);
+
     const qObj = QUESTIONS[current];
     answers.push({ qno: qObj.no, selectedIdx, correctIdx: qObj.answerIdx });
+
     addBubble(`선택: ${qObj.options[selectedIdx]}`, "user");
+
     if (selectedIdx === qObj.answerIdx) score += POINT_PER_Q;
+
     setTimeout(nextQuestion, 200);
   }
 
   async function submitToSheet(payload){
+    // Google Apps Script Web App 환경에 따라 CORS/리다이렉트가 다를 수 있어
+    // 1) JSON POST 시도 → 실패 시 2) x-www-form-urlencoded로 재시도
+    const ac1 = new AbortController();
+    const t1 = setTimeout(() => ac1.abort(), 12000);
+
     try{
-      return await fetch(SUBMIT_ENDPOINT, {
+      const res = await fetch(SUBMIT_ENDPOINT, {
         method: "POST",
+        mode: "cors",
+        redirect: "follow",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: ac1.signal
       });
-    }catch(e){ throw e; }
+      clearTimeout(t1);
+      return res;
+    }catch(e){
+      clearTimeout(t1);
+
+      const form = new URLSearchParams();
+      for (const [k,v] of Object.entries(payload)){
+        form.append(k, typeof v === "string" ? v : JSON.stringify(v));
+      }
+
+      const ac2 = new AbortController();
+      const t2 = setTimeout(() => ac2.abort(), 12000);
+
+      try{
+        const res2 = await fetch(SUBMIT_ENDPOINT, {
+          method: "POST",
+          mode: "cors",
+          redirect: "follow",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: form.toString(),
+          signal: ac2.signal
+        });
+        clearTimeout(t2);
+        return res2;
+      }catch(e2){
+        clearTimeout(t2);
+        throw e2;
+      }
+    }
   }
 
   async function finish(){
     const name = nameInput.value.trim();
     const examMonth = examMonthSelect.value;
+
     const pass = score >= PASS_SCORE;
     const resultLabel = pass ? "PASS" : "FAIL";
 
     addBubble("모든 문항이 완료되었습니다 ✅", "bot");
+
     const resultBubble = addBubble(
       `이름: ${name}\n응시월: ${examMonth}\n총점: ${score}점\n결과: ${resultLabel}\n(기준: ${PASS_SCORE}점 이상 Pass)`,
       "bot"
     );
     resultBubble.classList.add("result", pass ? "pass" : "fail");
 
+    // ===== 제출 payload =====
+    const submittedAt = new Date().toISOString();
     const payload = {
-      name, examMonth, score,
+      name,
+      examMonth,
+      score,
       passScore: PASS_SCORE,
       result: resultLabel,
-      submittedAt: new Date().toISOString(),
-      answers
+      submittedAt,
+      answers // 상세 JSON
     };
 
     addBubble("응답을 저장 중입니다…", "bot");
+
+    submitInFlight = true;
     try{
       const res = await submitToSheet(payload);
-      addBubble(res && res.ok ? "✅ 저장이 완료되었습니다." : "⚠️ 저장에 실패했습니다.", "bot");
+      if (!res || !res.ok){
+        addBubble("⚠️ 저장에 실패했습니다. (Apps Script 배포/권한/CORS 설정을 확인해주세요)", "bot");
+      }else{
+        addBubble("✅ 저장이 완료되었습니다.", "bot");
+      }
     }catch(e){
-      addBubble("⚠️ 저장 중 오류가 발생했습니다.", "bot");
+      addBubble("⚠️ 저장 중 오류가 발생했습니다. (네트워크 또는 Apps Script 설정 확인)", "bot");
+    }finally{
+      submitInFlight = false;
     }
 
     addBubble("정답 리뷰를 시작합니다.", "bot");
+
     QUESTIONS.forEach((q, i) => {
       const userSel = answers[i]?.selectedIdx;
-      const userText = userSel === undefined ? "-" : q.options[userSel];
+      const userText = (userSel === undefined) ? "-" : q.options[userSel];
       const correctText = q.options[q.answerIdx];
       const ok = userSel === q.answerIdx;
+
       addBubble(
-        `Q${q.no}. ${q.q}\n- 내 답: ${userText} (${userSel === undefined ? "-" : idxToLetter(userSel)})\n- 정답: ${correctText} (${idxToLetter(q.answerIdx)})\n- 결과: ${ok ? "O" : "X"}`,
+        `Q${q.no}. ${q.q}\n` +
+        `- 내 답: ${userText} (${userSel === undefined ? "-" : idxToLetter(userSel)})\n` +
+        `- 정답: ${correctText} (${idxToLetter(q.answerIdx)})\n` +
+        `- 결과: ${ok ? "O" : "X"}`,
         "bot"
       );
     });
+
     addBubble("수고하셨습니다! 👍", "bot");
   }
 
