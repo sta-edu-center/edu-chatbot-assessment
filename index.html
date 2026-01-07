@@ -169,7 +169,23 @@
   // =========================
   // 제출 엔드포인트 (Google Apps Script)
   // =========================
-  const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
+async function submitToSheets(payload) {
+    if (!SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.includes("여기에_")) {
+      addBubble("⚠️ 관리자 설정 필요: 응답 저장 URL(SUBMIT_ENDPOINT)이 아직 설정되지 않았습니다.", "bot");
+      return { ok: false, error: "ENDPOINT_NOT_SET" };
+    }
+    try {
+      const res = await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json().catch(() => ({}));
+      return { ok: res.ok && json.ok === true, ...json };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  }
 
   // =========================
   // 문제/정답 데이터 (A set)
