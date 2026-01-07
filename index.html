@@ -479,8 +479,16 @@
 
     setStatus(resultLabel, pass ? "success" : "danger");
     addBubble("모든 문항이 완료되었습니다 ✅", "bot");
-    addBubble(`총점: ${score}점\n결과: ${resultLabel}\n(기준: ${passScore}점 이상 Pass)`, "bot");
+// 🔽 여기서부터가 핵심
+const bubble = addBubble(
+  `총점: ${score}점\n결과: ${resultLabel}\n(기준: ${passScore}점 이상 Pass)`,
+  "bot"
+);
 
+// ⭐ Pass / Fail에 따라 말풍선 색상 분기
+bubble.classList.add("result");
+bubble.classList.add(pass ? "pass" : "fail");
+// 🔼 여기까지
     addBubble("응답을 저장 중입니다…", "bot");
 
     const payload = {
