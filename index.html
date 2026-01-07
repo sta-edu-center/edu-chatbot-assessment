@@ -1,192 +1,193 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SW Testing Foundation 교육 이수자 평가</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SW Testing Foundation 교육 이수자 평가</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; margin:0; background:#f5f7fb; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 18px; }
+    .card { background:#fff; border-radius:16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow:hidden; }
 
-<style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f6f7fb;
-}
-.container {
-  max-width: 900px;
-  margin: 30px auto;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-  overflow: hidden;
-}
-.header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.title { font-weight: 800; }
-#adminBtn {
-  display: none;
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  cursor: pointer;
-  opacity: .6;
-}
-#adminBtn:hover { opacity: 1; }
+    .head { padding:16px 18px; border-bottom:1px solid #eef1f6; }
+    .title { font-weight:900; }
+    .meta { font-size:12px; color:#6b7280; margin-top:4px; }
 
-.chat {
-  height: 420px;
-  overflow-y: auto;
-  padding: 20px;
-  background: #fafafa;
-}
-.msg { margin-bottom: 12px; display: flex; }
-.msg.bot { justify-content: flex-start; }
-.msg.user { justify-content: flex-end; }
+    .chat { padding:16px 18px; min-height: 320px; background:linear-gradient(#ffffff, #fbfcff); }
+    .bubble { max-width: 92%; padding:12px 14px; border-radius:14px; margin:10px 0; line-height:1.45; white-space:pre-wrap; }
+    .bot { background:#eef2ff; border-top-left-radius:6px; }
+    .user { background:#ecfeff; margin-left:auto; border-top-right-radius:6px; }
 
-.bubble {
-  max-width: 75%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #f1f5f9;
-  white-space: pre-line;
-  font-size: 14px;
-}
+    /* 결과 색상 */
+    .result-pass { background:#dcfce7; color:#14532d; border-top-left-radius:6px; }
+    .result-fail { background:#fee2e2; color:#7f1d1d; border-top-left-radius:6px; }
 
-/* 결과 말풍선 */
-.bubble.result { font-weight: 700; }
-.bubble.result.pass {
-  background: #ecfdf5;
-  border-color: #22c55e;
-  color: #065f46;
-}
-.bubble.result.fail {
-  background: #fef2f2;
-  border-color: #ef4444;
-  color: #7f1d1d;
-}
+    /* 운영월 배너 */
+    .banner {
+      max-width: 92%;
+      padding: 16px 18px;
+      border-radius: 16px;
+      margin: 12px 0;
+      background: #111827;
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+    }
+    .banner .sub { font-size:12px; opacity:.9; margin-top:6px; }
 
-.footer {
-  padding: 16px 20px;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
+    .actions { padding:12px 18px 18px; border-top:1px solid #eef1f6; background:#fff; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input, select { padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
+    input { flex: 1; min-width: 180px; }
 
-select, button {
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
-}
-button {
-  background: #2563eb;
-  color: #fff;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-</style>
+    .btn { padding:10px 14px; border:0; border-radius:10px; cursor:pointer; font-weight:800; }
+    .btn.primary { background:#111827; color:#fff; }
+    .btn.option { background:#f3f4f6; border:1px solid #e5e7eb; text-align:left; }
+
+    .options { margin-top: 10px; display:grid; gap:10px; }
+    .hint { font-size:12px; color:#6b7280; margin-top:10px; }
+  </style>
 </head>
-
 <body>
-<div class="container">
-  <div class="header">
-    <div class="title">교육 이수 평가</div>
-    <button id="adminBtn" title="관리자 설정">⚙️</button>
-  </div>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <div class="title">교육 이수 평가</div>
+      <div class="meta">객관식 10문항 · 자동 채점 · Pass / Fail</div>
+    </div>
 
-  <div id="chat" class="chat"></div>
+    <div id="chat" class="chat"></div>
 
-  <!-- 교육생 입력 영역 -->
-  <div class="footer">
-    <select id="examMonth">
-      <option value="">응시월 선택</option>
-    </select>
-    <button id="startBtn">평가 시작</button>
+    <div class="actions">
+      <div class="row">
+        <input id="name" placeholder="이름 (필수)" />
+        <select id="monthSelect">
+          <option value="">응시 월 선택</option>
+        </select>
+        <button id="startBtn" class="btn primary">이수 평가 시작</button>
+      </div>
+
+      <div id="options" class="options"></div>
+
+      <div class="hint">
+        · 응시 월을 선택한 후 평가를 시작하세요.<br/>
+        · 모든 응답은 자동으로 저장됩니다.
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-/* admin=true 일 때만 아이콘 */
-const params = new URLSearchParams(location.search);
-if (params.get("admin") === "true") {
-  document.getElementById("adminBtn").style.display = "inline-block";
-}
+  /* =========================
+     설정
+  ========================= */
+  const SUBMIT_ENDPOINT = "여기에_AppsScript_웹앱_URL";
 
-/* ===== 채팅 ===== */
-const chat = document.getElementById("chat");
-function addBubble(text, role = "bot") {
-  const msg = document.createElement("div");
-  msg.className = "msg " + role;
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  bubble.innerText = text;
-  msg.appendChild(bubble);
-  chat.appendChild(msg);
-  chat.scrollTop = chat.scrollHeight;
-  return bubble;
-}
+  /* =========================
+     문제 / 정답
+     a=0, b=1, c=2, d=3
+  ========================= */
+  const QUESTIONS = [
+    { q:"Q1. 일반적인 테스트 목적은?", o:["a. 결함 예방","b. 결함 수정","c. 결함 제거","d. 장애 원인 분석"], a:0 },
+    { q:"Q2. 반복 테스트로 신규 결함을 못 찾은 원리는?", o:["a","b","c","d"], a:2 },
+    { q:"Q3. 전체 팀 접근법의 장점은?", o:["a","b","c","d"], a:1 },
+    { q:"Q4. BDD 설명이 아닌 것은?", o:["a","b","c","d"], a:1 },
+    { q:"Q5. 시프트-레프트 설명은?", o:["a","b","c","d"], a:2 },
+    { q:"Q6. 분기 커버리지 설명 중 틀린 것은?", o:["a","b","c","d"], a:2 },
+    { q:"Q7. Given/When/Then 형식은?", o:["a","b","c","d"], a:0 },
+    { q:"Q8. 테스팅 시작 조건 예는?", o:["a","b","c","d"], a:2 },
+    { q:"Q9. 테스트 준비 정의는?", o:["a","b","c","d"], a:3 },
+    { q:"Q10. 자동화 리스크 완화로 부적절한 것은?", o:["a","b","c","d"], a:2 },
+  ];
 
-/* ===== 응시월 드롭다운 생성 (최근 12개월) ===== */
-const examMonthSelect = document.getElementById("examMonth");
+  const chat = document.getElementById("chat");
+  const optionsBox = document.getElementById("options");
+  const startBtn = document.getElementById("startBtn");
+  const monthSelect = document.getElementById("monthSelect");
 
-(function populateMonths() {
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const value = `${y}-${m}`;
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = value;
-    examMonthSelect.appendChild(opt);
+  let idx = -1, score = 0, answers = [], startedAt;
+
+  function addBubble(text, cls="bot") {
+    const d = document.createElement("div");
+    d.className = "bubble " + cls;
+    d.textContent = text;
+    chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
   }
-})();
 
-/* ===== 시작 ===== */
-document.getElementById("startBtn").addEventListener("click", () => {
-  const examMonth = examMonthSelect.value;
-  if (!examMonth) {
-    alert("응시월을 선택해주세요.");
-    return;
+  function addBanner(month) {
+    const d = document.createElement("div");
+    d.className = "banner";
+    d.innerHTML = `응시 월: ${month}<div class="sub">선택한 응시 월을 확인하세요</div>`;
+    chat.appendChild(d);
   }
-  addBubble(`응시월: ${examMonth}\n평가를 시작합니다 📘`, "bot");
 
-  // ⚠️ 여기서 문제 출제 로직 시작하면 됨
-  setTimeout(finishTest, 800); // 예시
-});
+  function buildMonths() {
+    const now = new Date();
+    for (let i=0;i<12;i++) {
+      const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+      const v = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      const o = document.createElement("option");
+      o.value = v; o.textContent = v;
+      monthSelect.appendChild(o);
+    }
+  }
 
-/* ===== 종료 (예시) ===== */
-function finishTest() {
-  const score = 75;
-  const passScore = 70;
-  const pass = score >= passScore;
+  function showQ() {
+    const q = QUESTIONS[idx];
+    addBubble(q.q,"bot");
+    optionsBox.innerHTML="";
+    q.o.forEach((t,i)=>{
+      const b=document.createElement("button");
+      b.className="btn option";
+      b.textContent=t;
+      b.onclick=()=>choose(i);
+      optionsBox.appendChild(b);
+    });
+  }
 
-  addBubble("모든 문항이 완료되었습니다 ✅", "bot");
+  function choose(i) {
+    const q = QUESTIONS[idx];
+    addBubble(`선택: ${["a","b","c","d"][i]}`,"user");
+    if (i===q.a) score+=10;
+    answers.push({q:idx+1, pick:i, correct:i===q.a});
+    idx++;
+    optionsBox.innerHTML="";
+    if (idx<QUESTIONS.length) showQ();
+    else finish();
+  }
 
-  const bubble = addBubble(
-    `총점: ${score}점\n결과: ${pass ? "PASS" : "FAIL"}\n(기준: ${passScore}점 이상 Pass)`,
-    "bot"
-  );
+  async function finish() {
+    const pass = score>=80;
+    addBubble(
+      `총점: ${score}점\n결과: ${pass?"PASS":"FAIL"}`,
+      pass?"result-pass":"result-fail"
+    );
 
-  bubble.classList.add("result", pass ? "pass" : "fail");
+    fetch(SUBMIT_ENDPOINT,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({
+        name:document.getElementById("name").value,
+        runMonth:monthSelect.value,
+        score, result:pass?"PASS":"FAIL",
+        answers, startedAt
+      })
+    });
+  }
 
-  addBubble("응답을 저장 중입니다…", "bot");
-}
+  startBtn.onclick=()=>{
+    if(!document.getElementById("name").value) return alert("이름을 입력하세요");
+    if(!monthSelect.value) return alert("응시 월을 선택하세요");
+    chat.innerHTML="";
+    idx=0; score=0; answers=[];
+    startedAt=new Date().toISOString();
+    addBubble("이수 평가를 시작합니다.","bot");
+    addBanner(monthSelect.value);
+    showQ();
+  };
 
-/* 초기 메시지 */
-addBubble("안녕하세요! 응시월을 선택하고 평가를 시작해주세요 😊", "bot");
+  buildMonths();
 </script>
 </body>
 </html>
