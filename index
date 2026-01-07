@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>교육 이수 평가 (챗봇형)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; margin:0; background:#f5f7fb; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { background:#fff; border-radius:16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow:hidden; }
+    .head { padding:16px 18px; border-bottom:1px solid #eef1f6; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;}
+    .title { font-weight:900; }
+    .meta { font-size:12px; color:#6b7280; }
+    .badge { font-size:12px; padding:4px 10px; border-radius:999px; background:#eef1f6; color:#111827; }
+    .danger { background:#fee2e2; color:#991b1b; }
+    .success { background:#dcfce7; color:#166534; }
+
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:#f3f4f6; font-size:12px; margin-top:8px; }
+    .pill b { font-weight:900; }
+
+    .chat { padding:16px 18px; min-height: 360px; background:linear-gradient(#ffffff, #fbfcff); }
+    .bubble { max-width: 92%; padding:12px 14px; border-radius:14px; margin:10px 0; line-height:1.45; white-space:pre-wrap; }
+    .bot { background:#eef2ff; border-top-left-radius:6px; }
+    .user { background:#ecfeff; margin-left:auto; border-top-right-radius:6px; }
+
+    /* 운영월 큰 배너 */
+    .banner {
+      max-width: 92%;
+      padding: 16px 18px;
+      border-radius: 16px;
+      margin: 12px 0 4px;
+      background: #111827;
+      color: #fff;
+      font-weight: 950;
+      letter-spacing: .2px;
+      line-height: 1.35;
+      white-space:pre-wrap;
+      font-size: 18px;
+    }
+    .banner .sub { font-weight: 650; opacity: .9; font-size: 12px; margin-top: 8px; }
+
+    .actions { padding:12px 18px 18px; border-top:1px solid #eef1f6; background:#fff; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input, select { padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
+    input { flex: 1; min-width: 200px; }
+
+    .btn { padding:10px 12px; border:0; border-radius:10px; cursor:pointer; font-weight:800; }
+    .btn.primary { background:#111827; color:#fff; }
+    .btn.ghost { background:#eef1f6; color:#111827; }
+    .btn.option { background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; text-align:left; }
+    .btn.option:hover { filter: brightness(0.98); }
+    .btn.review { background:#2563eb; color:#fff; }
+    .btn.review:disabled { opacity:.5; cursor:not-allowed; }
+    .btn.admin { background:#0f172a; color:#fff; }
+
+    
+    /* 헤더 우측 상단 관리자 아이콘 버튼 (URL에 ?admin=true 일 때만 노출) */
+    #adminBtn{
+      width:32px; height:32px; border-radius:999px;
+      border:none; background:transparent;
+      font-size:18px; cursor:pointer;
+      opacity:.6; display:none;
+      margin-left:8px;
+      transition: opacity .2s ease, background .2s ease;
+    }
+    #adminBtn:hover{ opacity:1; background: rgba(0,0,0,.05); }
+.options { margin-top: 10px; display:grid; gap:10px; }
+    .hint { font-size:12px; color:#6b7280; margin-top:10px; }
+    .footer { padding: 12px 18px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid #eef1f6; }
+
+    /* 관리자 패널 */
+    .adminPanel { display:none; border-top:1px solid #eef1f6; padding:14px 18px; background:#fff; }
+    .adminPanel.on { display:block; }
+    .adminTitle { font-weight:950; margin-bottom:8px; }
+    .small { font-size:12px; color:#6b7280; }
+    .divider { height:1px; background:#eef1f6; margin:12px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <div>
+        <div class="title">교육 이수 평가 (챗봇형)</div>
+        <div class="meta">객관식 10문항 · 자동 채점 · Pass/Fail · 응답 Google Sheets 자동 저장</div>
+        <div class="pill">
+          운영 월: <b id="runMonthLabel">미설정</b>
+          <span class="meta">(운영자 설정)</span>
+        </div>
+      </div>
+      <div class="meta">
+        <span id="statusBadge" class="badge">대기</span>
+        <button id="adminBtn" title="관리자 설정" aria-label="관리자 설정">⚙️</button>
+      </div>
+    </div>
+
+    <div id="chat" class="chat"></div>
+
+    <div class="actions">
+      <div class="row">
+        <input id="name" placeholder="이름 (필수)" />
+        <input id="org" placeholder="소속 (선택)" />
+        <button id="startBtn" class="btn primary">이수 평가 시작</button>
+        <button id="resetBtn" class="btn ghost" disabled>리셋</button>
+        <button id="reviewBtn" class="btn review" disabled>정답 리뷰 보기</button>
+</div>
+
+      <div class="hint">
+        · 보기 버튼을 클릭해 답변하세요. (정답/오답은 진행 중 표시하지 않음)<br/>
+        · 마지막에 Pass/Fail과 점수가 표시되며, 응답은 자동으로 저장됩니다.<br/>
+        · 종료 후 “정답 리뷰 보기”로 선택/정답을 확인할 수 있습니다.
+      </div>
+
+      <div id="options" class="options"></div>
+    </div>
+
+    <!-- 관리자 설정 패널 -->
+    <div id="adminPanel" class="adminPanel">
+      <div class="adminTitle">관리자 설정</div>
+      <div class="row">
+        <input id="pinInput" type="password" placeholder="관리자 PIN" style="max-width:260px;" />
+        <button id="unlockBtn" class="btn primary">잠금 해제</button>
+        <button id="lockBtn" class="btn ghost" disabled>잠금</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="adminFields" style="display:none;">
+        <div class="row">
+          <label class="meta" style="min-width:78px;">운영 월</label>
+          <select id="monthSelect"></select>
+          <button id="saveMonthBtn" class="btn primary">저장</button>
+          <button id="clearMonthBtn" class="btn ghost">초기화</button>
+        </div>
+        <div class="small" style="margin-top:8px;">
+          · 운영 월은 이 브라우저에 저장됩니다(현장 운영 PC에서 1회 설정 권장).<br/>
+          · 설정 후 교육생은 “운영 월”을 시작 화면에서 크게 확인할 수 있습니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="meta">기준 점수: <span id="passScoreView">80</span>점 이상 Pass</div>
+      <div class="row">
+        <label class="meta">Pass 기준</label>
+        <select id="passScore">
+          <option value="70">70</option>
+          <option value="80" selected>80</option>
+          <option value="90">90</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // =========================
+  // ✅ 반드시 설정할 것 2개
+  // =========================
+  const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
+  const ADMIN_PIN = "Welcome123"; // ✅ 여기만 너가 쓰는 PIN으로
+
+  // =========================
+  // ✅ 문제 + 정답 (A set)
+  // 1 a, 2 c, 3 b, 4 b, 5 c, 6 c, 7 a, 8 c, 9 d, 10 c
+  // answer 인덱스: a=0, b=1, c=2, d=3
+  // =========================
+  const QUESTIONS = [
+    { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?",
+      options: ["a. 결함 예방","b. 결함 수정","c. 결함 제거","d. 장애 원인 분석"], answer: 0 },
+    { q: "Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n\n다음 중 이 상황을 설명해주는 테스팅 원리는?",
+      options: ["a. 결함-부재는 오류이다","b. 완벽한 테스팅은 불가능하다","c. 테스트 효과는 줄어든다","d. 테스팅은 정황에 의존적이다"], answer: 2 },
+    { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?",
+      options: ["a. 개발 비용이 줄어든다","b. 팀 내 의사소통과 협업이 강화된다","c. 출시 일정을 지킬 확률이 높아진다","d. 독립적인 테스터가 필요 없다"], answer: 1 },
+    { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?",
+      options: [
+        "a. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.",
+        "b. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.",
+        "c. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.",
+        "d. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."
+      ], answer: 1 },
+    { q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?",
+      options: [
+        "a. 테스팅은 제품 개발이 끝난 후에 수행한다.",
+        "b. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.",
+        "c. 코드를 작성하기 전에 테스트 케이스를 작성한다.",
+        "d. 리뷰에 테스터가 참여하지 않아도 된다."
+      ], answer: 2 },
+    { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?",
+      options: [
+        "a. 분기 테스팅의 커버리지 항목은 분기이다.",
+        "b. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.",
+        "c. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.",
+        "d. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."
+      ], answer: 2 },
+    { q: "Q7. Given/When/Then/And 인수 조건은 어떤 형식으로 작성된 것인가?",
+      options: ["a. 시나리오 중심","b. 규칙 중심","c. 제품 중심","d. 프로세스 중심"], answer: 0 },
+    { q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?",
+      options: ["a. 해결되지 않은 결함 수","b. 리스크 커버리지 수준","c. 인력, 도구, 테스트 데이터 등 자원의 가용성","d. 계획한 테스트의 실행율"], answer: 2 },
+    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?",
+      options: ["a. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.","b. 구문 커버리지 100%","c. 계획된 일정 대비 진척율","d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], answer: 3 },
+    { q: "Q10. 자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?",
+      options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.","b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.","c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.","d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], answer: 2 },
+  ];
+
+  // ====== refs ======
+  const chat = document.getElementById('chat');
+  const optionsBox = document.getElementById('options');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const reviewBtn = document.getElementById('reviewBtn');
+  const statusBadge = document.getElementById('statusBadge');
+  const passScoreSel = document.getElementById('passScore');
+  const passScoreView = document.getElementById('passScoreView');
+  const runMonthLabel = document.getElementById('runMonthLabel');
+
+  const adminBtn = document.getElementById('adminBtn');
+
+  // URL 파라미터에 admin=true가 있을 때만 관리자 아이콘 노출
+  const params = new URLSearchParams(window.location.search);
+  const isAdminParam = params.get('admin') === 'true';
+  if (isAdminParam) adminBtn.style.display = 'inline-flex';
+  const adminPanel = document.getElementById('adminPanel');
+  const pinInput = document.getElementById('pinInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const lockBtn = document.getElementById('lockBtn');
+  const adminFields = document.getElementById('adminFields');
+  const monthSelect = document.getElementById('monthSelect');
+  const saveMonthBtn = document.getElementById('saveMonthBtn');
+  const clearMonthBtn = document.getElementById('clearMonthBtn');
+
+  // ====== state ======
+  let idx = -1, score = 0, answers = [];
+  let startedAt = null, finishedAt = null;
+  let reviewShown = false;
+  let adminUnlocked = false;
+
+  // ====== helpers ======
+  function setStatus(text, kind="") {
+    statusBadge.textContent = text;
+    statusBadge.className = "badge" + (kind ? " " + kind : "");
+  }
+  function addBubble(text, who="bot") {
+    const div = document.createElement('div');
+    div.className = `bubble ${who}`;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function addBannerRunMonth(runMonth) {
+    const div = document.createElement('div');
+    div.className = "banner";
+    div.innerHTML = `운영 월: ${runMonth}\n<div class="sub">응시 전 운영 월을 확인하세요.</div>`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function clearOptions() { optionsBox.innerHTML = ""; }
+  function showOptions(qObj) {
+    clearOptions();
+    qObj.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = "btn option";
+      btn.textContent = opt;
+      btn.onclick = () => choose(i);
+      optionsBox.appendChild(btn);
+    });
+  }
+
+  // ====== run month (12개월: 이번달~+11) ======
+  const RUN_MONTH_KEY = "RUN_MONTH";
+  function getRunMonth() { return localStorage.getItem(RUN_MONTH_KEY) || ""; }
+  function setRunMonth(v) { localStorage.setItem(RUN_MONTH_KEY, v); }
+  function clearRunMonth() { localStorage.removeItem(RUN_MONTH_KEY); }
+
+  function pad2(n){ return String(n).padStart(2, "0"); }
+  function formatYYYYMM(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+
+  function buildMonthOptions12() {
+    const now = new Date();
+    const base = new Date(now.getFullYear(), now.getMonth(), 1);
+    const months = [];
+    for (let i=0; i<12; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+      months.push(formatYYYYMM(d));
+    }
+    return months;
+  }
+
+  function refreshRunMonthLabel() {
+    const v = getRunMonth();
+    runMonthLabel.textContent = v ? v : "미설정";
+  }
+
+  function populateMonthDropdown() {
+    const months = buildMonthOptions12();
+    monthSelect.innerHTML = "";
+    months.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m;
+      monthSelect.appendChild(opt);
+    });
+
+    const current = getRunMonth();
+    if (current && months.includes(current)) monthSelect.value = current;
+  }
+
+  // ====== admin UI ======
+  adminBtn.addEventListener("click", () => {
+    adminPanel.classList.toggle("on");
+    populateMonthDropdown();
+  });
+
+  function lockAdmin() {
+    adminUnlocked = false;
+    adminFields.style.display = "none";
+    lockBtn.disabled = true;
+    pinInput.value = "";
+  }
+
+  unlockBtn.addEventListener("click", () => {
+    if (pinInput.value === ADMIN_PIN) {
+      adminUnlocked = true;
+      adminFields.style.display = "block";
+      lockBtn.disabled = false;
+      addBubble("✅ 관리자 설정이 잠금 해제되었습니다. 운영 월을 선택 후 저장하세요.", "bot");
+    } else {
+      alert("PIN이 올바르지 않습니다.");
+    }
+  });
+
+  lockBtn.addEventListener("click", () => {
+    lockAdmin();
+    addBubble("🔒 관리자 설정이 잠겼습니다.", "bot");
+  });
+
+  saveMonthBtn.addEventListener("click", () => {
+    if (!adminUnlocked) { alert("먼저 PIN으로 잠금 해제하세요."); return; }
+    const v = monthSelect.value;
+    setRunMonth(v);
+    refreshRunMonthLabel();
+    addBubble(`📌 운영 월이 '${v}'로 설정되었습니다.`, "bot");
+  });
+
+  clearMonthBtn.addEventListener("click", () => {
+    if (!adminUnlocked) { alert("먼저 PIN으로 잠금 해제하세요."); return; }
+    clearRunMonth();
+    refreshRunMonthLabel();
+    populateMonthDropdown();
+    addBubble("📌 운영 월 설정이 초기화되었습니다.", "bot");
+  });
+
+  // ====== pass 기준 ======
+  passScoreSel.addEventListener('change', () => {
+    passScoreView.textContent = passScoreSel.value;
+  });
+
+  // ====== submit (Sheets) ======
+  async function submitToSheets(payload) {
+    if (!SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.includes("여기에_")) {
+      addBubble("⚠️ 관리자 설정 필요: 응답 저장 URL(SUBMIT_ENDPOINT)이 아직 설정되지 않았습니다.", "bot");
+      return { ok: false, error: "ENDPOINT_NOT_SET" };
+    }
+    try {
+      const res = await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json().catch(() => ({}));
+      return { ok: res.ok && json.ok === true, ...json };
+    } catch (e) {
+      return { ok: false, error: String(e) };
+    }
+  }
+
+  // ====== exam flow ======
+  function start() {
+    const name = document.getElementById('name').value.trim();
+    if (!name) { alert("이름을 입력해주세요."); return; }
+
+    const rm = getRunMonth();
+    if (!rm) {
+      alert("운영 월이 설정되지 않았습니다.\n관리자 설정에서 운영 월을 먼저 저장해주세요.");
+      return;
+    }
+
+    startedAt = new Date();
+    idx = 0; score = 0; answers = [];
+    finishedAt = null; reviewShown = false;
+
+    chat.innerHTML = "";
+    addBubble("안녕하세요 👋\n지금부터 교육 이수 평가를 시작합니다.\n총 10문항이며, 보기 버튼을 클릭해 답변하세요.", "bot");
+    addBannerRunMonth(rm);
+    addBubble("준비가 되셨다면 1번 문제를 시작할게요.", "bot");
+
+    setStatus("진행중", "");
+    startBtn.disabled = true;
+    resetBtn.disabled = false;
+    reviewBtn.disabled = true;
+
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const qObj = QUESTIONS[idx];
+    addBubble(qObj.q, "bot");
+    showOptions(qObj);
+  }
+
+  function choose(selectedIndex) {
+    const qObj = QUESTIONS[idx];
+    const label = ["a","b","c","d"][selectedIndex] ?? String(selectedIndex + 1);
+    addBubble(`선택: ${label}`, "user");
+
+    const correct = (selectedIndex === qObj.answer);
+    if (correct) score += 10;
+
+    answers.push({ qNo: idx + 1, selectedIndex, selectedLabel: label, correct });
+
+    idx++;
+    clearOptions();
+
+    if (idx < QUESTIONS.length) {
+      addBubble("확인했습니다. 다음 문제로 이동할게요 👇", "bot");
+      renderQuestion();
+    } else {
+      finish();
+    }
+  }
+
+  function buildReviewLines() {
+    const lines = [];
+    lines.push("📌 정답 리뷰 (선택 / 정답 / 결과)");
+    lines.push(`운영 월: ${getRunMonth()}`);
+    lines.push("");
+
+    for (let i=0; i<QUESTIONS.length; i++) {
+      const q = QUESTIONS[i];
+      const a = answers.find(x => x.qNo === i+1);
+      const selectedLabel = a ? a.selectedLabel : "-";
+      const correctLabel = ["a","b","c","d"][q.answer];
+      const ox = a ? (a.correct ? "O" : "X") : "-";
+
+      lines.push(`Q${i+1}. ${ox}`);
+      lines.push(`- 선택: ${selectedLabel}`);
+      lines.push(`- 정답: ${correctLabel}`);
+      lines.push(`- 정답 보기: ${q.options[q.answer]}`);
+      lines.push("");
+    }
+    return lines.join("\n");
+  }
+
+  reviewBtn.addEventListener("click", () => {
+    if (reviewShown) return;
+    reviewShown = true;
+    addBubble(buildReviewLines(), "bot");
+  });
+
+  async function finish() {
+    finishedAt = new Date();
+    const passScore = Number(passScoreSel.value);
+    const pass = score >= passScore;
+    const resultLabel = pass ? "PASS (이수)" : "FAIL (미이수)";
+
+    setStatus(resultLabel, pass ? "success" : "danger");
+    addBubble("모든 문항이 완료되었습니다 ✅", "bot");
+    addBubble(`총점: ${score}점\n결과: ${resultLabel}\n(기준: ${passScore}점 이상 Pass)`, "bot");
+
+    addBubble("응답을 저장 중입니다…", "bot");
+
+    const payload = {
+      runMonth: getRunMonth(),
+      name: document.getElementById('name').value.trim(),
+      org: document.getElementById('org').value.trim(),
+      startedAt: startedAt ? startedAt.toISOString() : "",
+      finishedAt: finishedAt ? finishedAt.toISOString() : "",
+      score,
+      passScore,
+      result: pass ? "PASS" : "FAIL",
+      answers
+    };
+
+    const saved = await submitToSheets(payload);
+    if (saved.ok) {
+      addBubble("저장 완료! 제출이 정상 처리되었습니다. 감사합니다 🙌", "bot");
+    } else {
+      addBubble("⚠️ 저장에 실패했습니다.\n네트워크 또는 관리자 설정(Apps Script 배포/권한/URL)을 확인해주세요.", "bot");
+      console.log("Save failed:", saved);
+    }
+
+    reviewBtn.disabled = false;
+    addBubble("원하시면 아래 버튼에서 ‘정답 리뷰’를 확인할 수 있어요.", "bot");
+  }
+
+  function resetAll() {
+    idx = -1; score = 0; answers = [];
+    startedAt = null; finishedAt = null;
+    reviewShown = false;
+
+    chat.innerHTML = "";
+    clearOptions();
+    setStatus("대기", "");
+    startBtn.disabled = false;
+    resetBtn.disabled = true;
+    reviewBtn.disabled = true;
+
+    addBubble("리셋 완료. 이름을 입력하고 ‘이수 평가 시작’을 누르세요.", "bot");
+  }
+
+  startBtn.addEventListener('click', start);
+  resetBtn.addEventListener('click', resetAll);
+
+  // ====== init ======
+  refreshRunMonthLabel();
+  populateMonthDropdown();
+  lockAdmin();
+
+  addBubble(
+    "운영 안내:\n- 시작 전 ‘관리자 설정’에서 운영 월을 선택해 저장해주세요.\n- 교육생은 시작 화면에서 운영 월을 크게 확인할 수 있습니다.",
+    "bot"
+  );
+</script>
+</body>
+</html>
