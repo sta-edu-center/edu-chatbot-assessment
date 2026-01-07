@@ -1,430 +1,239 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SW Testing Foundation 교육 - 훈련생 이수 평가</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>교육 이수 평가 (챗봇형)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; margin:0; background:#f5f7fb; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { background:#fff; border-radius:16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow:hidden; }
+    .head { padding:16px 18px; border-bottom:1px solid #eef1f6; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;}
+    .title { font-weight:900; }
+    .meta { font-size:12px; color:#6b7280; }
+    .badge { font-size:12px; padding:4px 10px; border-radius:999px; background:#eef1f6; color:#111827; }
+    .danger { background:#fee2e2; color:#991b1b; }
+    .success { background:#dcfce7; color:#166534; }
 
-<style>
-  :root{
-    --bg:#f6f7fb;
-    --card:#ffffff;
-    --text:#0f172a;
-    --muted:#64748b;
-    --line:#e5e7eb;
-    --brand:#2563eb;
-  }
+    .chat { padding:16px 18px; min-height: 360px; background:linear-gradient(#ffffff, #fbfcff); }
+    .bubble { max-width: 92%; padding:12px 14px; border-radius:14px; margin:10px 0; line-height:1.45; white-space:pre-wrap; }
+    .bot { background:#eef2ff; border-top-left-radius:6px; }
+    .user { background:#ecfeff; margin-left:auto; border-top-right-radius:6px; }
 
-  body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    background:var(--bg);
-    color:var(--text);
-  }
-  .container{
-    max-width: 980px;
-    margin: 28px auto;
-    background: var(--card);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.08);
-    overflow:hidden;
-    border:1px solid var(--line);
-  }
-  .header{
-    padding: 16px 20px;
-    border-bottom:1px solid var(--line);
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:12px;
-  }
-  .title{ font-weight: 900; font-size: 18px; }
-  .sub{ color: var(--muted); font-size: 12px; margin-top: 6px; line-height:1.4; }
+    .actions { padding:12px 18px 18px; border-top:1px solid #eef1f6; background:#fff; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input, select { padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
+    input { flex: 1; min-width: 150px; }
+    select { background: #fff; cursor: pointer; }
 
-  .chat{
-    height: 56vh;
-    min-height: 420px;
-    max-height: 760px;
-    overflow-y:auto;
-    padding: 18px;
-    background: #fafafa;
-  }
-  .msg{ margin: 10px 0; display:flex; }
-  .msg.bot{ justify-content:flex-start; }
-  .msg.user{ justify-content:flex-end; }
+    .btn { padding:10px 12px; border:0; border-radius:10px; cursor:pointer; font-weight:800; }
+    .btn.primary { background:#111827; color:#fff; }
+    .btn.ghost { background:#eef1f6; color:#111827; }
+    .btn.option { background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; text-align:left; }
+    .btn.option:hover { filter: brightness(0.98); }
+    .btn.review { background:#2563eb; color:#fff; }
+    .btn.review:disabled { opacity:.5; cursor:not-allowed; }
 
-  .bubble{
-    max-width: 78%;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: #f1f5f9;
-    white-space: pre-line;
-    font-size: 14px;
-    line-height: 1.55;
-  }
-  .msg.user .bubble{
-    background: rgba(37,99,235,.12);
-    border-color: rgba(37,99,235,.25);
-  }
-
-  /* ✅ 결과 말풍선 */
-  .bubble.result{ font-weight: 800; }
-  .bubble.result.pass{
-    background:#ecfdf5;
-    border-color:#22c55e;
-    color:#065f46;
-  }
-  .bubble.result.fail{
-    background:#fef2f2;
-    border-color:#ef4444;
-    color:#7f1d1d;
-  }
-
-  .qbtns{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-  .qbtns button{
-    padding: 10px 12px;
-    border-radius: 12px;
-    border:1px solid var(--line);
-    background:#fff;
-    cursor:pointer;
-    font-weight:800;
-  }
-  .qbtns button:hover{ background:#f8fafc; }
-  .qbtns button:disabled{ opacity:.55; cursor:not-allowed; }
-
-  .footer{
-    padding: 16px 20px;
-    border-top:1px solid var(--line);
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center;
-    background:#fff;
-  }
-  input, select{
-    padding: 10px 12px;
-    border-radius: 12px;
-    border:1px solid var(--line);
-    font-size:14px;
-    outline:none;
-  }
-  input:focus, select:focus{
-    border-color: rgba(37,99,235,.55);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-  }
-  button.primary{
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: none;
-    background: var(--brand);
-    color:#fff;
-    font-weight:900;
-    cursor:pointer;
-  }
-  button.primary:disabled{ opacity:.5; cursor:not-allowed; }
-
-  .hint{
-    padding: 0 20px 16px 20px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.45;
-  }
-
-  @media (max-width: 820px){
-    .bubble{ max-width: 92%; }
-    .chat{ height: 62vh; }
-    input, select{ flex:1; min-width: 140px; }
-  }
-</style>
+    .options { margin-top: 10px; display:grid; gap:10px; }
+    .hint { font-size:12px; color:#6b7280; margin-top:10px; }
+    .footer { padding: 12px 18px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid #eef1f6; }
+  </style>
 </head>
-
 <body>
-<div class="container">
-  <div class="header">
-    <div>
-      <div class="title">Software Testing Foundation · 훈련생 이수 평가</div>
-      <div class="sub">객관식 10문항 · 자동 채점 · 결과(PASS/FAIL) 안내 및 정답 리뷰 · Google Sheets 저장</div>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <div>
+        <div class="title">Software Testing Foundation · 교육 이수 평가</div>
+        <div class="meta">객관식 10문항 · 자동 채점 · Pass/Fail · 응답 Google Sheets 저장</div>
+      </div>
+      <div class="meta">
+        <span id="statusBadge" class="badge">대기</span>
+      </div>
     </div>
-  </div>
 
-  <div id="chat" class="chat"></div>
+    <div id="chat" class="chat"></div>
 
-  <div class="footer">
-    <input id="nameInput" placeholder="성함 (필수)" />
-    <select id="examMonth">
-      <option value="">응시월 선택</option>
-    </select>
-    <button id="startBtn" class="primary">평가 시작</button>
-  </div>
+    <div class="actions">
+      <div class="row">
+        <select id="runMonthSelect">
+          <option value="">응시 월 선택 (필수)</option>
+        </select>
+        <input id="name" placeholder="이름 (필수)" />
+        <input id="org" placeholder="소속 (선택)" />
+        <button id="startBtn" class="btn primary">이수 평가 시작</button>
+        <button id="resetBtn" class="btn ghost" disabled>리셋</button>
+        <button id="reviewBtn" class="btn review" disabled>정답 리뷰 보기</button>
+      </div>
 
-  <div class="hint">
-    · 응시월은 필수 선택입니다.<br/>
-    · 진행 중에는 정오답을 표시하지 않으며, 마지막에 총점과 PASS/FAIL, 정답 리뷰가 제공됩니다.<br/>
-    · 완료 후 응답이 Google Sheets로 저장됩니다.
+      <div class="hint">
+        · 응시 월을 선택하고 이름을 입력한 뒤 시작하세요.<br/>
+        · 보기 버튼을 클릭해 답변하세요. (마지막에 점수와 Pass/Fail이 표시됩니다)<br/>
+        · 종료 후 “정답 리뷰 보기”를 통해 상세 결과를 확인할 수 있습니다.
+      </div>
+
+      <div id="options" class="options"></div>
+    </div>
+
+    <div class="footer">
+      <div class="meta">기준 점수: <span id="passScoreView">80</span>점 이상 Pass</div>
+      <div class="row">
+        <label class="meta">Pass 기준 설정</label>
+        <select id="passScore">
+          <option value="70">70</option>
+          <option value="80" selected>80</option>
+          <option value="90">90</option>
+        </select>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-  // ✅ 2) 제출 엔드포인트 설정 완료
+  // =========================
+  // ✅ Google Sheets API URL
+  // =========================
   const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
   // =========================
-  // 문제/정답 데이터
-  // answer 키를 사용하여 정답 인덱스 지정 (0=a, 1=b, 2=c, 3=d)
+  // ✅ 문제 데이터
   // =========================
   const QUESTIONS = [
-    { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?",
-      options: ["a. 결함 예방","b. 결함 수정","c. 결함 제거","d. 장애 원인 분석"], answer: 0 },
-    { q: "Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n\n다음 중 이 상황을 설명해주는 테스팅 원리는?",
-      options: ["a. 결함-부재는 오류이다","b. 완벽한 테스팅은 불가능하다","c. 테스트 효과는 줄어든다","d. 테스팅은 정황에 의존적이다"], answer: 2 },
-    { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?",
-      options: ["a. 개발 비용이 줄어든다","b. 팀 내 의사소통과 협업이 강화된다","c. 출시 일정을 지킬 확률이 높아진다","d. 독립적인 테스터가 필요 없다"], answer: 1 },
-    { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?",
-      options: [
-        "a. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.",
-        "b. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.",
-        "c. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.",
-        "d. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."
-      ], answer: 1 },
-    { q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?",
-      options: [
-        "a. 테스팅은 제품 개발이 끝난 후에 수행한다.",
-        "b. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.",
-        "c. 코드를 작성하기 전에 테스트 케이스를 작성한다.",
-        "d. 리뷰에 테스터가 참여하지 않아도 된다."
-      ], answer: 2 },
-    { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?",
-      options: [
-        "a. 분기 테스팅의 커버리지 항목은 분기이다.",
-        "b. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.",
-        "c. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.",
-        "d. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."
-      ], answer: 2 },
-    { q: "Q7. Given/When/Then/And 인수 조건은 어떤 형식으로 작성된 것인가?",
-      options: ["a. 시나리오 중심","b. 규칙 중심","c. 제품 중심","d. 프로세스 중심"], answer: 0 },
-    { q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?",
-      options: ["a. 해결되지 않은 결함 수","b. 리스크 커버리지 수준","c. 인력, 도구, 테스트 데이터 등 자원의 가용성","d. 계획한 테스트의 실행율"], answer: 2 },
-    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?",
-      options: ["a. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.","b. 구문 커버리지 100%","c. 계획된 일정 대비 진척율","d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], answer: 3 },
-    { q: "Q10. 자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?",
-      options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.","b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.","c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.","d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], answer: 2 },
+    { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", options: ["a. 결함 예방","b. 결함 수정","c. 결함 제거","d. 장애 원인 분석"], answer: 0 },
+    { q: "Q2. 앱 출시 후 심각한 오류가 발견되었으나 동일 테스트만 반복한 경우 발생하는 테스팅 원리는?", options: ["a. 결함-부재는 오류이다","b. 완벽한 테스팅은 불가능하다","c. 테스트 효과는 줄어든다","d. 테스팅은 정황에 의존적이다"], answer: 2 },
+    { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", options: ["a. 개발 비용이 줄어든다","b. 팀 내 의사소통과 협업이 강화된다","c. 출시 일정을 지킬 확률이 높아진다","d. 독립적인 테스터가 필요 없다"], answer: 1 },
+    { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", options: ["a. 자연어로 작성한다","b. 인수 조건에서 테스트 도출한다","c. Given/When/Then 형태다","d. 의사 소통을 촉진한다"], answer: 1 },
+    { q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?", options: ["a. 개발 후 테스팅 수행","b. 시스템 테스트만 수행","c. 코드 작성 전 테스트 작성","d. 리뷰 배제"], answer: 2 },
+    { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", options: ["a. 커버리지 항목은 분기다","b. 측정 수식이 존재한다","c. 100% 분기 커버리지는 구문 커버리지 100%를 보장하지 않는다","d. 모든 결함 발견 불가"], answer: 2 },
+    { q: "Q7. Given/When/Then/And 인수 조건은 어떤 형식인가?", options: ["a. 시나리오 중심","b. 규칙 중심","c. 제품 중심","d. 프로세스 중심"], answer: 0 },
+    { q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?", options: ["a. 미해결 결함 수","b. 리스크 수준","c. 자원의 가용성","d. 테스트 실행율"], answer: 2 },
+    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", options: ["a. 결제 성공률 80% 이상","b. 구문 커버리지 100%","c. 일정 대비 진척율","d. 테스트 베이시스의 가용성"], answer: 3 },
+    { q: "Q10. 자동화의 잠재적 리스크 완화 조치로 적절하지 않은 것은?", options: ["a. 비현실적 기대 경계","b. 운용 자원 고려","c. 도구에 전적으로 의존","d. 표준 준수 사전 평가"], answer: 2 },
   ];
 
-  const PASS_SCORE = 80;
-  const POINT_PER_Q = 10;
+  // Refs
+  const chat = document.getElementById('chat');
+  const optionsBox = document.getElementById('options');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const reviewBtn = document.getElementById('reviewBtn');
+  const statusBadge = document.getElementById('statusBadge');
+  const passScoreSel = document.getElementById('passScore');
+  const passScoreView = document.getElementById('passScoreView');
+  const runMonthSelect = document.getElementById('runMonthSelect');
 
-  let current = -1;
-  let score = 0;
-  let answers = [];
-  let submitInFlight = false;
+  let idx = -1, score = 0, answers = [];
+  let startedAt = null, finishedAt = null;
 
-  const chat = document.getElementById("chat");
-  const startBtn = document.getElementById("startBtn");
-  const nameInput = document.getElementById("nameInput");
-  const examMonthSelect = document.getElementById("examMonth");
-
-  function addBubble(text, role = "bot") {
-    const msg = document.createElement("div");
-    msg.className = "msg " + role;
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    bubble.innerText = text;
-    msg.appendChild(bubble);
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-    return bubble;
-  }
-
-  function addQuestionBubble(qObj, idx) {
-    const msg = document.createElement("div");
-    msg.className = "msg bot";
-    const bubble = document.createElement("div");
-    bubble.className = "bubble";
-    const title = document.createElement("div");
-    title.style.fontWeight = "900";
-    title.style.marginBottom = "8px";
-    title.innerText = qObj.q; // 질문 텍스트 자체에 Q번호가 포함되어 있음
-    bubble.appendChild(title);
-
-    const btns = document.createElement("div");
-    btns.className = "qbtns";
-
-    qObj.options.forEach((opt, oIdx) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.innerText = opt;
-      b.addEventListener("click", () => chooseAnswer(oIdx, btns));
-      btns.appendChild(b);
-    });
-
-    bubble.appendChild(btns);
-    msg.appendChild(bubble);
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  function disableButtons(btnContainer) {
-    btnContainer.querySelectorAll("button").forEach(b => b.disabled = true);
-  }
-
-  function idxToLetter(i){
-    return ["a","b","c","d"][i] || "";
-  }
-
-  (function populateMonths(){
+  // Init: Populate Month Select (Next 12 months)
+  function initMonthSelect() {
     const now = new Date();
-    for (let i=0; i<12; i++){
+    for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const value = `${y}-${m}`;
-      const opt = document.createElement("option");
-      opt.value = value;
-      opt.textContent = value;
-      examMonthSelect.appendChild(opt);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      runMonthSelect.appendChild(opt);
     }
-  })();
+  }
+
+  function addBubble(text, who="bot") {
+    const div = document.createElement('div');
+    div.className = `bubble ${who}`;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
 
   function start() {
-    if (submitInFlight) return;
-    const name = nameInput.value.trim();
-    const examMonth = examMonthSelect.value;
-    if (!name) { alert("성함을 입력해주세요."); nameInput.focus(); return; }
-    if (!examMonth) { alert("응시월을 선택해주세요."); examMonthSelect.focus(); return; }
+    const name = document.getElementById('name').value.trim();
+    const runMonth = runMonthSelect.value;
+    if (!runMonth) { alert("응시 월을 선택해주세요."); return; }
+    if (!name) { alert("이름을 입력해주세요."); return; }
 
-    current = -1;
-    score = 0;
-    answers = [];
-    nameInput.disabled = true;
-    examMonthSelect.disabled = true;
-    startBtn.disabled = true;
-
-    addBubble(`안녕하세요 ${name}님 😊\n응시월: ${examMonth}\n평가를 시작합니다. (총 ${QUESTIONS.length}문항)`, "bot");
-    nextQuestion();
-  }
-
-  function nextQuestion(){
-    current++;
-    if (current >= QUESTIONS.length){
-      finish();
-      return;
-    }
-    addQuestionBubble(QUESTIONS[current], current);
-  }
-
-  function chooseAnswer(selectedIdx, btnContainer){
-    disableButtons(btnContainer);
-    const qObj = QUESTIONS[current];
+    startedAt = new Date();
+    idx = 0; score = 0; answers = [];
+    chat.innerHTML = "";
+    addBubble(`안녕하세요 ${name}님 👋\n${runMonth} 교육 이수 평가를 시작합니다.`, "bot");
     
-    // ✅ 1) 정답 체크 시 answerIdx가 아닌 answer를 사용하도록 수정
-    answers.push({ qno: current + 1, selectedIdx, correctIdx: qObj.answer });
-    addBubble(`선택: ${qObj.options[selectedIdx]}`, "user");
-
-    if (selectedIdx === qObj.answer) score += POINT_PER_Q;
-    setTimeout(nextQuestion, 200);
+    statusBadge.textContent = "진행중";
+    statusBadge.className = "badge";
+    startBtn.disabled = true;
+    resetBtn.disabled = false;
+    renderQuestion();
   }
 
-  async function submitToSheet(payload){
-    const ac1 = new AbortController();
-    const t1 = setTimeout(() => ac1.abort(), 12000);
-    try{
-      const res = await fetch(SUBMIT_ENDPOINT, {
-        method: "POST",
-        mode: "cors",
-        redirect: "follow",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        signal: ac1.signal
-      });
-      clearTimeout(t1);
-      return res;
-    }catch(e){
-      clearTimeout(t1);
-      const form = new URLSearchParams();
-      for (const [k,v] of Object.entries(payload)){
-        form.append(k, typeof v === "string" ? v : JSON.stringify(v));
-      }
-      const ac2 = new AbortController();
-      const t2 = setTimeout(() => ac2.abort(), 12000);
-      try{
-        const res2 = await fetch(SUBMIT_ENDPOINT, {
-          method: "POST",
-          mode: "cors",
-          redirect: "follow",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body: form.toString(),
-          signal: ac2.signal
-        });
-        clearTimeout(t2);
-        return res2;
-      }catch(e2){
-        clearTimeout(t2);
-        throw e2;
-      }
-    }
+  function renderQuestion() {
+    const qObj = QUESTIONS[idx];
+    addBubble(qObj.q, "bot");
+    optionsBox.innerHTML = "";
+    qObj.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = "btn option";
+      btn.textContent = opt;
+      btn.onclick = () => {
+        const label = ["a","b","c","d"][i];
+        addBubble(`선택: ${label}`, "user");
+        if (i === qObj.answer) score += 10;
+        answers.push({ qNo: idx+1, selectedIndex: i, selectedLabel: label, correct: (i === qObj.answer) });
+        idx++;
+        if (idx < QUESTIONS.length) renderQuestion();
+        else finish();
+      };
+      optionsBox.appendChild(btn);
+    });
   }
 
-  async function finish(){
-    const name = nameInput.value.trim();
-    const examMonth = examMonthSelect.value;
-    const pass = score >= PASS_SCORE;
-    const resultLabel = pass ? "PASS" : "FAIL";
+  async function finish() {
+    finishedAt = new Date();
+    optionsBox.innerHTML = "";
+    const passScore = Number(passScoreSel.value);
+    const pass = score >= passScore;
+    const result = pass ? "PASS" : "FAIL";
 
-    addBubble("모든 문항이 완료되었습니다 ✅", "bot");
-    const resultBubble = addBubble(
-      `이름: ${name}\n응시월: ${examMonth}\n총점: ${score}점\n결과: ${resultLabel}\n(기준: ${PASS_SCORE}점 이상 Pass)`,
-      "bot"
-    );
-    resultBubble.classList.add("result", pass ? "pass" : "fail");
+    statusBadge.textContent = result;
+    statusBadge.className = "badge " + (pass ? "success" : "danger");
+    addBubble(`모든 문항 완료!\n총점: ${score}점 / 결과: ${result}`, "bot");
+    addBubble("데이터 저장 중...", "bot");
 
-    const submittedAt = new Date().toISOString();
     const payload = {
-      name,
-      examMonth,
+      runMonth: runMonthSelect.value,
+      name: document.getElementById('name').value.trim(),
+      org: document.getElementById('org').value.trim(),
+      startedAt: startedAt.toISOString(),
+      finishedAt: finishedAt.toISOString(),
       score,
-      passScore: PASS_SCORE,
-      result: resultLabel,
-      submittedAt,
+      passScore,
+      result,
       answers
     };
 
-    addBubble("응답을 저장 중입니다…", "bot");
-    submitInFlight = true;
-    try{
-      const res = await submitToSheet(payload);
-      if (!res || !res.ok) addBubble("⚠️ 저장에 실패했습니다. (Apps Script 설정을 확인해주세요)", "bot");
-      else addBubble("✅ 저장이 완료되었습니다.", "bot");
-    }catch(e){
-      addBubble("⚠️ 저장 중 오류가 발생했습니다.", "bot");
-    }finally{
-      submitInFlight = false;
-    }
-
-    addBubble("정답 리뷰를 시작합니다.", "bot");
-
-    QUESTIONS.forEach((q, i) => {
-      const userSel = answers[i]?.selectedIdx;
-      const userText = (userSel === undefined) ? "-" : q.options[userSel];
-      
-      // ✅ 1) 리뷰 시 q.answerIdx를 q.answer로 수정
-      const correctText = q.options[q.answer];
-      const ok = userSel === q.answer;
-
-      addBubble(
-        `${q.q}\n` +
-        `- 내 답: ${userText} (${userSel === undefined ? "-" : idxToLetter(userSel)})\n` +
-        `- 정답: ${correctText} (${idxToLetter(q.answer)})\n` +
-        `- 결과: ${ok ? "O" : "X"}`,
-        "bot"
-      );
+    const res = await fetch(SUBMIT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
     });
-
-    addBubble("수고하셨습니다! 👍", "bot");
+    
+    addBubble("저장이 완료되었습니다. 수고하셨습니다!", "bot");
+    reviewBtn.disabled = false;
   }
 
-  addBubble("안녕하세요! 성함과 응시월을 입력/선택 후 [평가 시작]을 눌러주세요 😊", "bot");
-  startBtn.addEventListener("click", start);
+  reviewBtn.onclick = () => {
+    let reviewText = "📌 정답 리뷰\n";
+    QUESTIONS.forEach((q, i) => {
+      const a = answers[i];
+      const ox = a.correct ? "O" : "X";
+      reviewText += `Q${i+1}. [${ox}] 선택: ${a.selectedLabel} / 정답: ${["a","b","c","d"][q.answer]}\n`;
+    });
+    addBubble(reviewText, "bot");
+  };
+
+  resetBtn.onclick = () => location.reload();
+  passScoreSel.onchange = () => passScoreView.textContent = passScoreSel.value;
+
+  initMonthSelect();
+  addBubble("이름과 응시 월을 입력하고 시작 버튼을 눌러주세요.", "bot");
 </script>
 </body>
 </html>
