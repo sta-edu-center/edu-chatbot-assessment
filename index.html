@@ -15,28 +15,26 @@
     .danger { background:#fee2e2; color:#991b1b; }
     .success { background:#dcfce7; color:#166534; }
 
-    .chat { padding:16px 18px; min-height: 360px; background:linear-gradient(#ffffff, #fbfcff); }
-    .bubble { max-width: 92%; padding:12px 14px; border-radius:14px; margin:10px 0; line-height:1.45; white-space:pre-wrap; }
-    .bot { background:#eef2ff; border-top-left-radius:6px; }
-    .user { background:#ecfeff; margin-left:auto; border-top-right-radius:6px; }
+    .chat { padding:16px 18px; min-height: 360px; background:linear-gradient(#ffffff, #fbfcff); overflow-y: auto; height: 500px; }
+    .bubble { max-width: 92%; padding:12px 14px; border-radius:14px; margin:10px 0; line-height:1.45; white-space:pre-wrap; font-size: 14px; }
+    .bot { background:#eef2ff; border-top-left-radius:6px; align-self: flex-start; }
+    .user { background:#ecfeff; margin-left:auto; border-top-right-radius:6px; align-self: flex-end; }
 
     .actions { padding:12px 18px 18px; border-top:1px solid #eef1f6; background:#fff; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     input, select { padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px; }
     input { flex: 1; min-width: 150px; }
-    select { background: #fff; cursor: pointer; }
 
     .btn { padding:10px 12px; border:0; border-radius:10px; cursor:pointer; font-weight:800; }
     .btn.primary { background:#111827; color:#fff; }
     .btn.ghost { background:#eef1f6; color:#111827; }
-    .btn.option { background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; text-align:left; }
+    .btn.option { background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; text-align:left; width: 100%; }
     .btn.option:hover { filter: brightness(0.98); }
     .btn.review { background:#2563eb; color:#fff; }
     .btn.review:disabled { opacity:.5; cursor:not-allowed; }
 
     .options { margin-top: 10px; display:grid; gap:10px; }
     .hint { font-size:12px; color:#6b7280; margin-top:10px; }
-    .footer { padding: 12px 18px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; border-top:1px solid #eef1f6; }
   </style>
 </head>
 <body>
@@ -45,59 +43,32 @@
     <div class="head">
       <div>
         <div class="title">Software Testing Foundation · 교육 이수 평가</div>
-        <div class="meta">객관식 10문항 · 자동 채점 · Pass/Fail · 응답 Google Sheets 저장</div>
+        <div class="meta">객관식 10문항 · 자동 채점 · Pass/Fail 안내</div>
       </div>
-      <div class="meta">
-        <span id="statusBadge" class="badge">대기</span>
-      </div>
+      <div><span id="statusBadge" class="badge">대기</span></div>
     </div>
 
-    <div id="chat" class="chat"></div>
+    <div id="chat" class="chat" style="display: flex; flex-direction: column;"></div>
 
     <div class="actions">
       <div class="row">
         <select id="runMonthSelect">
           <option value="">응시 월 선택 (필수)</option>
         </select>
-        <input id="name" placeholder="이름 (필수)" />
-        <input id="org" placeholder="소속 (선택)" />
-        <button id="startBtn" class="btn primary">이수 평가 시작</button>
-        <button id="resetBtn" class="btn ghost" disabled>리셋</button>
+        <input id="userName" placeholder="이름 (필수)" />
+        <button id="startBtn" class="btn primary">평가 시작</button>
         <button id="reviewBtn" class="btn review" disabled>정답 리뷰 보기</button>
       </div>
-
-      <div class="hint">
-        · 응시 월을 선택하고 이름을 입력한 뒤 시작하세요.<br/>
-        · 보기 버튼을 클릭해 답변하세요. (마지막에 점수와 Pass/Fail이 표시됩니다)<br/>
-        · 종료 후 “정답 리뷰 보기”를 통해 상세 결과를 확인할 수 있습니다.
-      </div>
-
+      <div class="hint">· 월 선택과 이름 입력 후 시작 버튼을 눌러주세요.</div>
       <div id="options" class="options"></div>
-    </div>
-
-    <div class="footer">
-      <div class="meta">기준 점수: <span id="passScoreView">80</span>점 이상 Pass</div>
-      <div class="row">
-        <label class="meta">Pass 기준 설정</label>
-        <select id="passScore">
-          <option value="70">70</option>
-          <option value="80" selected>80</option>
-          <option value="90">90</option>
-        </select>
-      </div>
     </div>
   </div>
 </div>
 
 <script>
-  // =========================
-  // ✅ Google Sheets API URL
-  // =========================
+  // ✅ 2) 엔드포인트 반영 확인
   const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
-  // =========================
-  // ✅ 문제 데이터
-  // =========================
   const QUESTIONS = [
     { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", options: ["a. 결함 예방","b. 결함 수정","c. 결함 제거","d. 장애 원인 분석"], answer: 0 },
     { q: "Q2. 앱 출시 후 심각한 오류가 발견되었으나 동일 테스트만 반복한 경우 발생하는 테스팅 원리는?", options: ["a. 결함-부재는 오류이다","b. 완벽한 테스팅은 불가능하다","c. 테스트 효과는 줄어든다","d. 테스팅은 정황에 의존적이다"], answer: 2 },
@@ -107,36 +78,29 @@
     { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", options: ["a. 커버리지 항목은 분기다","b. 측정 수식이 존재한다","c. 100% 분기 커버리지는 구문 커버리지 100%를 보장하지 않는다","d. 모든 결함 발견 불가"], answer: 2 },
     { q: "Q7. Given/When/Then/And 인수 조건은 어떤 형식인가?", options: ["a. 시나리오 중심","b. 규칙 중심","c. 제품 중심","d. 프로세스 중심"], answer: 0 },
     { q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?", options: ["a. 미해결 결함 수","b. 리스크 수준","c. 자원의 가용성","d. 테스트 실행율"], answer: 2 },
-    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", options: ["a. 결제 성공률 80% 이상","b. 구문 커버리지 100%","c. 일정 대비 진척율","d. 테스트 베이시스의 가용성"], answer: 3 },
-    { q: "Q10. 자동화의 잠재적 리스크 완화 조치로 적절하지 않은 것은?", options: ["a. 비현실적 기대 경계","b. 운용 자원 고려","c. 도구에 전적으로 의존","d. 표준 준수 사전 평가"], answer: 2 },
+    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", options: ["a. 결제 성공률 80% 이상","b. 구문 커버리지 100%","c. 일정 대비 진척율","d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], answer: 3 },
+    { q: "Q10. 자동화의 잠재적 리스크 완화 조치로 적절하지 않은 것은?", options: ["a. 비현실적 기대 경계","b. 운용 자원 고려","c. 도구에 전적으로 의존","d. 표준 준수 사전 평가"], answer: 2 }
   ];
 
-  // Refs
+  let idx = -1, score = 0, answers = [];
   const chat = document.getElementById('chat');
   const optionsBox = document.getElementById('options');
   const startBtn = document.getElementById('startBtn');
-  const resetBtn = document.getElementById('resetBtn');
   const reviewBtn = document.getElementById('reviewBtn');
-  const statusBadge = document.getElementById('statusBadge');
-  const passScoreSel = document.getElementById('passScore');
-  const passScoreView = document.getElementById('passScoreView');
-  const runMonthSelect = document.getElementById('runMonthSelect');
+  const monthSelect = document.getElementById('runMonthSelect');
+  const nameInput = document.getElementById('userName');
 
-  let idx = -1, score = 0, answers = [];
-  let startedAt = null, finishedAt = null;
-
-  // Init: Populate Month Select (Next 12 months)
-  function initMonthSelect() {
+  // 월 드롭다운 초기화
+  (function() {
     const now = new Date();
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val;
-      runMonthSelect.appendChild(opt);
+      opt.value = val; opt.textContent = val;
+      monthSelect.appendChild(opt);
     }
-  }
+  })();
 
   function addBubble(text, who="bot") {
     const div = document.createElement('div');
@@ -147,20 +111,17 @@
   }
 
   function start() {
-    const name = document.getElementById('name').value.trim();
-    const runMonth = runMonthSelect.value;
-    if (!runMonth) { alert("응시 월을 선택해주세요."); return; }
-    if (!name) { alert("이름을 입력해주세요."); return; }
+    const name = nameInput.value.trim();
+    const month = monthSelect.value;
+    if (!month || !name) { alert("응시 월과 이름을 모두 입력해주세요."); return; }
 
-    startedAt = new Date();
     idx = 0; score = 0; answers = [];
     chat.innerHTML = "";
-    addBubble(`안녕하세요 ${name}님 👋\n${runMonth} 교육 이수 평가를 시작합니다.`, "bot");
-    
-    statusBadge.textContent = "진행중";
-    statusBadge.className = "badge";
+    addBubble(`안녕하세요 ${name}님! ${month} 평가를 시작합니다.`, "bot");
     startBtn.disabled = true;
-    resetBtn.disabled = false;
+    monthSelect.disabled = true;
+    nameInput.disabled = true;
+    document.getElementById('statusBadge').textContent = "진행중";
     renderQuestion();
   }
 
@@ -175,8 +136,9 @@
       btn.onclick = () => {
         const label = ["a","b","c","d"][i];
         addBubble(`선택: ${label}`, "user");
-        if (i === qObj.answer) score += 10;
-        answers.push({ qNo: idx+1, selectedIndex: i, selectedLabel: label, correct: (i === qObj.answer) });
+        const isCorrect = (i === qObj.answer);
+        if (isCorrect) score += 10;
+        answers.push({ qNo: idx+1, selectedLabel: label, correct: isCorrect, selectedIdx: i });
         idx++;
         if (idx < QUESTIONS.length) renderQuestion();
         else finish();
@@ -186,54 +148,51 @@
   }
 
   async function finish() {
-    finishedAt = new Date();
     optionsBox.innerHTML = "";
-    const passScore = Number(passScoreSel.value);
-    const pass = score >= passScore;
+    const pass = score >= 80;
     const result = pass ? "PASS" : "FAIL";
+    document.getElementById('statusBadge').textContent = result;
+    document.getElementById('statusBadge').className = "badge " + (pass ? "success" : "danger");
 
-    statusBadge.textContent = result;
-    statusBadge.className = "badge " + (pass ? "success" : "danger");
-    addBubble(`모든 문항 완료!\n총점: ${score}점 / 결과: ${result}`, "bot");
+    addBubble(`평가 종료! 총점: ${score}점 / 결과: ${result}`, "bot");
     addBubble("데이터 저장 중...", "bot");
 
     const payload = {
-      runMonth: runMonthSelect.value,
-      name: document.getElementById('name').value.trim(),
-      org: document.getElementById('org').value.trim(),
-      startedAt: startedAt.toISOString(),
-      finishedAt: finishedAt.toISOString(),
-      score,
-      passScore,
-      result,
-      answers
+      runMonth: monthSelect.value,
+      name: nameInput.value,
+      score: score,
+      result: result,
+      answers: answers
     };
 
-    const res = await fetch(SUBMIT_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    
-    addBubble("저장이 완료되었습니다. 수고하셨습니다!", "bot");
+    try {
+      await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      addBubble("✅ 저장이 완료되었습니다.", "bot");
+    } catch (e) {
+      addBubble("⚠️ 저장 중 오류가 발생했습니다.", "bot");
+    }
     reviewBtn.disabled = false;
   }
 
+  // ✅ 1) 정답 리뷰 시 정답 내용이 나오도록 수정
   reviewBtn.onclick = () => {
     let reviewText = "📌 정답 리뷰\n";
     QUESTIONS.forEach((q, i) => {
       const a = answers[i];
-      const ox = a.correct ? "O" : "X";
-      reviewText += `Q${i+1}. [${ox}] 선택: ${a.selectedLabel} / 정답: ${["a","b","c","d"][q.answer]}\n`;
+      const correctLabel = ["a","b","c","d"][q.answer];
+      const correctText = q.options[q.answer]; // 정답 텍스트 내용 추출
+      reviewText += `Q${i+1}. [${a.correct ? 'O' : 'X'}] 내 선택: ${a.selectedLabel} / 정답: ${correctLabel} (${correctText})\n\n`;
     });
     addBubble(reviewText, "bot");
   };
 
-  resetBtn.onclick = () => location.reload();
-  passScoreSel.onchange = () => passScoreView.textContent = passScoreSel.value;
-
-  initMonthSelect();
-  addBubble("이름과 응시 월을 입력하고 시작 버튼을 눌러주세요.", "bot");
+  startBtn.addEventListener('click', start);
+  addBubble("응시 월을 선택하고 이름을 입력한 후 '평가 시작'을 눌러주세요.", "bot");
 </script>
 </body>
 </html>
