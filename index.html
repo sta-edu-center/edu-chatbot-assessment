@@ -64,117 +64,30 @@
 <script>
   const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
-   // ✅ A타입 문제 데이터
-  const QUESTIONS = [
-    { 
-      q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", 
-      options: ["a. 결함 예방", "b. 결함 수정", "c. 결함 제거", "d. 장애 원인 분석"], 
-      answer: 0 
-    },
-    { 
-      q: "Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n다음 중 이 상황을 설명해주는 테스팅 원리는?", 
-      options: ["a. 결함-부재는 오류이다", "b. 완벽한 테스팅은 불가능하다", "c. 테스트 효과는 줄어든다", "d. 테스팅은 정황에 의존적이다"], 
-      answer: 2 
-    },
-    { 
-      q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", 
-      options: ["a. 개발 비용이 줄어든다", "b. 팀 내 의사소통과 협업이 강화된다", "c. 출시 일정을 지킬 확률이 높아진다", "d. 독립적인 테스터가 필요 없다"], 
-      answer: 1 
-    },
-    { 
-      q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", 
-      options: ["a. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.", "b. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.", "c. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.", "d. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."], 
-      answer: 1 
-    },
-    { 
-      q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?", 
-      options: ["a. 테스팅은 제품 개발이 끝난 후에 수행한다.", "b. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.", "c. 코드를 작성하기 전에 테스트 케이스를 작성한다.", "d. 리뷰에 테스터가 참여하지 않아도 된다."], 
-      answer: 2 
-    },
-    { 
-      q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", 
-      options: ["a. 분기 테스팅의 커버리지 항목은 분기이다.", "b. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.", "c. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.", "d. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."], 
-      answer: 2 
-    },
-    { 
-      q: "Q7. 온라인 상점 운영자의 관점에서 작성된 사용자 스토리의 인수 조건이 다음과 같다:\nGiven: 사용자가 로그인하고 홈페이지에 접속한 상황에서,\nWhen: “상품 추가” 버튼을 클릭하면,\nThen: “상품 입력” 페이지가 출력되고,\nAnd: 사용자는 새 상품의 이름과 가격을 입력할 수 있어야 한다.\n이 인수 조건은 어떤 형식으로 작성된 것인가?", 
-      options: ["a. 시나리오 중심", "b. 규칙 중심", "c. 제품 중심", "d. 프로세스 중심"], 
-      answer: 0 
-    },
-    { 
-      q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?", 
-      options: ["a. 해결되지 않은 결함 수", "b. 리스크 커버리지 수준", "c. 인력, 도구, 테스트 데이터 등 자원의 가용성", "d. 계획한 테스트의 실행율"], 
-      answer: 2 
-    },
-    { 
-      q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", 
-      options: ["a. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.", "b. 구문 커버리지 100%", "c. 계획된 일정 대비 진척율", "d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], 
-      answer: 3 
-    },
-    { 
-      q: "Q10. 자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?", 
-      options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.", "b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.", "c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.", "d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], 
-      answer: 2 
-    }
+  // ✅ A타입 문제 데이터
+  const QUESTIONS_A = [
+    { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", options: ["a. 결함 예방", "b. 결함 수정", "c. 결함 제거", "d. 장애 원인 분석"], answer: 0 },
+    { q: "Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n다음 중 이 상황을 설명해주는 테스팅 원리는?", options: ["a. 결함-부재는 오류이다", "b. 완벽한 테스팅은 불가능하다", "c. 테스트 효과는 줄어든다", "d. 테스팅은 정황에 의존적이다"], answer: 2 },
+    { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", options: ["a. 개발 비용이 줄어든다", "b. 팀 내 의사소통과 협업이 강화된다", "c. 출시 일정을 지킬 확률이 높아진다", "d. 독립적인 테스터가 필요 없다"], answer: 1 },
+    { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", options: ["a. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.", "b. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.", "c. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.", "d. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."], answer: 1 },
+    { q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?", options: ["a. 테스팅은 제품 개발이 끝난 후에 수행한다.", "b. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.", "c. 코드를 작성하기 전에 테스트 케이스를 작성한다.", "d. 리뷰에 테스터가 참여하지 않아도 된다."], answer: 2 },
+    { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", options: ["a. 분기 테스팅의 커버리지 항목은 분기이다.", "b. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.", "c. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.", "d. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."], answer: 2 },
+    { q: "Q7. 온라인 상점 운영자의 관점에서 작성된 사용자 스토리의 인수 조건이 다음과 같다:\nGiven: 사용자가 로그인하고 홈페이지에 접속한 상황에서,\nWhen: “상품 추가” 버튼을 클릭하면,\nThen: “상품 입력” 페이지가 출력되고,\nAnd: 사용자는 새 상품의 이름과 가격을 입력할 수 있어야 한다.\n이 인수 조건은 어떤 형식으로 작성된 것인가?", options: ["a. 시나리오 중심", "b. 규칙 중심", "c. 제품 중심", "d. 프로세스 중심"], answer: 0 },
+    { q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?", options: ["a. 해결되지 않은 결함 수", "b. 리스크 커버리지 수준", "c. 인력, 도구, 테스트 데이터 등 자원의 가용성", "d. 계획한 테스트의 실행율"], answer: 2 },
+    { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", options: ["a. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.", "b. 구문 커버리지 100%", "c. 계획된 일정 대비 진척율", "d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], answer: 3 },
+    { q: "Q10. 자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?", options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.", "b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.", "c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.", "d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], answer: 2 }
   ];
 
-  // ✅ B타입 문제 데이터
-  const QUESTIONS = [
-    { 
-      q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", 
-      options: ["a. 결함 예방", "b. 결함 수정", "c. 결함 제거", "d. 장애 원인 분석"], 
-      answer: 0 
-    },
-    { 
-      q: "Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.\n다음 중 이 상황을 설명해주는 테스팅 원리는?", 
-      options: ["a. 결함-부재는 오류이다", "b. 완벽한 테스팅은 불가능하다", "c. 테스트 효과는 줄어든다", "d. 테스팅은 정황에 의존적이다"], 
-      answer: 2 
-    },
-    { 
-      q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", 
-      options: ["a. 개발 비용이 줄어든다", "b. 팀 내 의사소통과 협업이 강화된다", "c. 출시 일정을 지킬 확률이 높아진다", "d. 독립적인 테스터가 필요 없다"], 
-      answer: 1 
-    },
-    { 
-      q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", 
-      options: ["a. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.", "b. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.", "c. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.", "d. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."], 
-      answer: 1 
-    },
-    { 
-      q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?", 
-      options: ["a. 테스팅은 제품 개발이 끝난 후에 수행한다.", "b. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.", "c. 코드를 작성하기 전에 테스트 케이스를 작성한다.", "d. 리뷰에 테스터가 참여하지 않아도 된다."], 
-      answer: 2 
-    },
-    { 
-      q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", 
-      options: ["a. 분기 테스팅의 커버리지 항목은 분기이다.", "b. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.", "c. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.", "d. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."], 
-      answer: 2 
-    },
-    { 
-      q: "Q7. 온라인 상점 운영자의 관점에서 작성된 사용자 스토리의 인수 조건이 다음과 같다:\nGiven: 사용자가 로그인하고 홈페이지에 접속한 상황에서,\nWhen: “상품 추가” 버튼을 클릭하면,\nThen: “상품 입력” 페이지가 출력되고,\nAnd: 사용자는 새 상품의 이름과 가격을 입력할 수 있어야 한다.\n이 인수 조건은 어떤 형식으로 작성된 것인가?", 
-      options: ["a. 시나리오 중심", "b. 규칙 중심", "c. 제품 중심", "d. 프로세스 중심"], 
-      answer: 0 
-    },
-    { 
-      q: "Q8. 다음 중 테스팅 시작 조건의 예로 적절한 것은?", 
-      options: ["a. 해결되지 않은 결함 수", "b. 리스크 커버리지 수준", "c. 인력, 도구, 테스트 데이터 등 자원의 가용성", "d. 계획한 테스트의 실행율"], 
-      answer: 2 
-    },
-    { 
-      q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", 
-      options: ["a. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.", "b. 구문 커버리지 100%", "c. 계획된 일정 대비 진척율", "d. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성"], 
-      answer: 3 
-    },
-    { 
-      q: "Q10. 자동화의 잠재적 리스크에 대한 리스크 완화 조치로 적절하지 않은 것은?", 
-      options: ["a. 도구의 효과에 대한 비현실적인 기대를 경계한다.", "b. 도구 도입, 운용에 대한 자원을 충분히 고려한다.", "c. 개선해야 할 작업에 도입되는 도구에 전적으로 의존한다.", "d. 규제 요건이나 안전 표준을 준수하는지 도구를 사전에 평가한다."], 
-      answer: 2 
-    }
-  ];
+  // ✅ B타입 문제 데이터 (현재는 동일 세트로 구성 — 필요 시 B 전용 문항으로 교체 가능)
+  const QUESTIONS_B = [...QUESTIONS_A];
 
+  // ===== 상태 =====
   let currentQuestions = [];
-  let currentIdx = 0, score = 0, userAnswers = [];
-  
+  let currentIdx = 0;
+  let score = 0;
+  let userAnswers = [];
+
+  // ===== DOM =====
   const chat = document.getElementById('chat');
   const optionsBox = document.getElementById('options');
   const startBtn = document.getElementById('startBtn');
@@ -182,28 +95,11 @@
   const monthSelect = document.getElementById('monthSelect');
   const typeSelect = document.getElementById('typeSelect');
   const nameInput = document.getElementById('userName');
+  const statusBadge = document.getElementById('statusBadge');
+  const setupArea = document.getElementById('setupArea');
+  const questionArea = document.getElementById('questionArea');
 
-  // 페이지 로드 시 드롭다운 생성
-  window.onload = function() {
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const val = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
-      const opt = document.createElement('option');
-      opt.value = val; opt.textContent = val;
-      monthSelect.appendChild(opt);
-    }
-    
-    addBubble(`안녕하세요, STA교육센터입니다. 
-3일간의 여정을 함께해주셔서 감사합니다. 
-
-이번 시간은 여러분의 지식을 판가름하는 시험이라기보다, 실무에 임하기 전 학습 내용을 최종적으로 점검(Final Check)하는 과정입니다. 
-편안한 마음으로 임하시어 3일간의 노력을 여러분의 실력으로 확정 짓는 소중한 마침표의 시간으로 만드시길 바랍니다. 
-
-※ 응시 후, 결과는 STA교육센터 자체 관리 DB에 기록되오니 바로 종료하지 말아주시기 바랍니다.`, "bot");
-  };
-
-  function addBubble(content, who="bot") {
+  function addBubble(content, who = "bot") {
     const div = document.createElement('div');
     div.className = `bubble ${who}`;
     if (typeof content === 'string') div.innerText = content;
@@ -212,17 +108,49 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
+  function populateMonthsNext12() {
+    // 현재 달 ~ +11개월 (총 12개월)
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val;
+      monthSelect.appendChild(opt);
+    }
+  }
+
+  function resetRunState() {
+    currentQuestions = [];
+    currentIdx = 0;
+    score = 0;
+    userAnswers = [];
+    optionsBox.innerHTML = "";
+    reviewBtn.disabled = true;
+    statusBadge.className = "badge";
+    statusBadge.textContent = "대기 중";
+  }
+
   function start() {
     const name = nameInput.value.trim();
     const month = monthSelect.value;
     const type = typeSelect.value;
-    if (!name || !month || !type) { alert("정보를 모두 입력/선택해주세요."); return; }
+
+    if (!name || !month || !type) {
+      alert("정보를 모두 입력/선택해주세요.");
+      return;
+    }
+
+    // 새 실행을 위해 상태 초기화
+    resetRunState();
 
     currentQuestions = (type === 'A') ? QUESTIONS_A : QUESTIONS_B;
-    document.getElementById('setupArea').style.display = 'none';
-    document.getElementById('questionArea').style.display = 'block';
-    document.getElementById('statusBadge').textContent = `${type}형 진행중`;
-    
+
+    setupArea.style.display = 'none';
+    questionArea.style.display = 'block';
+    statusBadge.textContent = `${type}형 진행중`;
+
     addBubble(`${name}님, ${type}형 평가를 시작합니다.`, "bot");
     renderQuestion();
   }
@@ -230,12 +158,13 @@
   function renderQuestion() {
     const q = currentQuestions[currentIdx];
     addBubble(q.q, "bot");
+
     optionsBox.innerHTML = "";
     q.options.forEach((opt, i) => {
       const btn = document.createElement('button');
       btn.className = "option-btn";
       btn.innerText = opt;
-      btn.onclick = () => handleAnswer(i);
+      btn.addEventListener('click', () => handleAnswer(i));
       optionsBox.appendChild(btn);
     });
   }
@@ -244,18 +173,25 @@
     const q = currentQuestions[currentIdx];
     const isCorrect = (idx === q.answer);
     if (isCorrect) score += 10;
+
     userAnswers.push({ qNo: currentIdx + 1, selected: idx, correct: isCorrect });
     addBubble(q.options[idx], "user");
+
     currentIdx++;
-    if (currentIdx < currentQuestions.length) setTimeout(renderQuestion, 400);
-    else finish();
+    if (currentIdx < currentQuestions.length) {
+      setTimeout(renderQuestion, 350);
+    } else {
+      finish();
+    }
   }
 
   async function finish() {
-    document.getElementById('questionArea').style.display = 'none';
+    questionArea.style.display = 'none';
+
     const result = score >= 80 ? "PASS" : "FAIL";
-    document.getElementById('statusBadge').textContent = result;
-    document.getElementById('statusBadge').className = `badge ${score >= 80 ? 'success' : 'danger'}`;
+    statusBadge.textContent = result;
+    statusBadge.className = `badge ${score >= 80 ? 'success' : 'danger'}`;
+
     addBubble(`평가가 완료되었습니다.\n나의 점수: ${score}점\n최종 결과: ${result}`, "bot");
 
     try {
@@ -263,28 +199,59 @@
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ runMonth: monthSelect.value, examType: typeSelect.value, name: nameInput.value, score, result, answers: userAnswers })
+        body: JSON.stringify({
+          runMonth: monthSelect.value,
+          examType: typeSelect.value,
+          name: nameInput.value.trim(),
+          score,
+          result,
+          answers: userAnswers
+        })
       });
       addBubble("✅ 응답이 저장되었습니다.", "bot");
-    } catch (e) { addBubble("⚠️ 저장 오류 발생", "bot"); }
+    } catch (e) {
+      addBubble("⚠️ 저장 오류 발생", "bot");
+      console.error(e);
+    }
+
     reviewBtn.disabled = false;
   }
 
-  reviewBtn.onclick = () => {
+  reviewBtn.addEventListener('click', () => {
     addBubble("🧐 정답 리뷰를 출력합니다.", "bot");
     const container = document.createElement('div');
+
     currentQuestions.forEach((q, i) => {
       const ua = userAnswers[i];
       const item = document.createElement('div');
-      item.className = `review-item ${ua.correct ? 'correct' : 'wrong'}`;
-      item.innerHTML = `<strong>${q.q}</strong><br>• 내 답변: <span style="color:${ua.correct ? '#166534':'#991b1b'}">${q.options[ua.selected]}</span><br>• 정답: <strong>${q.options[q.answer]}</strong>`;
+      item.className = `review-item ${ua && ua.correct ? 'correct' : 'wrong'}`;
+      const my = ua ? q.options[ua.selected] : "(미응답)";
+      const myColor = (ua && ua.correct) ? '#166534' : '#991b1b';
+      item.innerHTML =
+        `<strong>${q.q}</strong><br>` +
+        `• 내 답변: <span style="color:${myColor}">${my}</span><br>` +
+        `• 정답: <strong>${q.options[q.answer]}</strong>`;
       container.appendChild(item);
     });
+
     addBubble(container, "bot");
     reviewBtn.disabled = true;
-  };
+  });
 
-  startBtn.onclick = start;
+  document.addEventListener('DOMContentLoaded', () => {
+    resetRunState();
+    populateMonthsNext12();
+
+    addBubble(`안녕하세요, STA교육센터입니다.
+3일간의 여정을 함께해주셔서 감사합니다.
+
+이번 시간은 여러분의 지식을 판가름하는 시험이라기보다, 실무에 임하기 전 학습 내용을 최종적으로 점검(Final Check)하는 과정입니다.
+편안한 마음으로 임하시어 3일간의 노력을 여러분의 실력으로 확정 짓는 소중한 마침표의 시간으로 만드시길 바랍니다.
+
+※ 응시 후, 결과는 STA교육센터 자체 관리 DB에 기록되오니 바로 종료하지 말아주시기 바랍니다.`, "bot");
+
+    startBtn.addEventListener('click', start);
+  });
 </script>
 </body>
 </html>
