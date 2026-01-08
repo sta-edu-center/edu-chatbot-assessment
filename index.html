@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SW Testing Foundation 교육 이수자 평가</title>
+  <title>STA 교육센터 | SW Testing Foundation 이수 평가</title>
   <style>
     body { font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; margin:0; background:#f5f7fb; }
     .wrap { max-width: 800px; margin: 0 auto; padding: 20px; }
@@ -39,9 +39,7 @@
       <div class="title">SW Testing Foundation 교육 이수자 평가</div>
       <div id="statusBadge" class="badge">대기 중</div>
     </div>
-    <div id="chat" class="chat">
-      <div class="bubble bot">안녕하세요, STA교육센터입니다.<br>3일간의 여정을 함께해주셔서 감사합니다.<br>이번 시간은 여러분의 지식을 판가름하는 시험이라기보다, 실무에 임하기 전 학습 내용을 최종적으로 점검(Final Check)하는 과정입니다.<br>편안한 마음으로 임하시어 3일간의 노력을 여러분의 실력으로 확정 짓는 소중한 마침표의 시간으로 만드시길 바랍니다.<br>※ 응시 후, 결과는 STA교육센터 자체 관리 DB에 기록되오니 바로 종료하지 말아주시기 바랍니다.</div>
-    </div>
+    <div id="chat" class="chat"></div>
     <div class="actions">
       <div id="setupArea">
         <div class="row">
@@ -66,7 +64,7 @@
 <script>
   const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycby3Zks4PTgNbFAw1ghS9IqsekBnTbad5dGcJQXiBfvRzI80v1xa5LX-dWp0UCHxYaMd/exec";
 
-  // ✅ A타입 문제 데이터
+   // ✅ A타입 문제 데이터
   const QUESTIONS = [
     { 
       q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", 
@@ -174,7 +172,7 @@
     }
   ];
 
-  let currentQuestions = []; // 실제 진행할 문제 배열
+  let currentQuestions = [];
   let currentIdx = 0, score = 0, userAnswers = [];
   
   const chat = document.getElementById('chat');
@@ -185,16 +183,25 @@
   const typeSelect = document.getElementById('typeSelect');
   const nameInput = document.getElementById('userName');
 
-  (function() {
+  // 페이지 로드 시 드롭다운 생성
+  window.onload = function() {
     const now = new Date();
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const val = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, '0');
       const opt = document.createElement('option');
       opt.value = val; opt.textContent = val;
       monthSelect.appendChild(opt);
     }
-  })();
+    
+    addBubble(`안녕하세요, STA교육센터입니다. 
+3일간의 여정을 함께해주셔서 감사합니다. 
+
+이번 시간은 여러분의 지식을 판가름하는 시험이라기보다, 실무에 임하기 전 학습 내용을 최종적으로 점검(Final Check)하는 과정입니다. 
+편안한 마음으로 임하시어 3일간의 노력을 여러분의 실력으로 확정 짓는 소중한 마침표의 시간으로 만드시길 바랍니다. 
+
+※ 응시 후, 결과는 STA교육센터 자체 관리 DB에 기록되오니 바로 종료하지 말아주시기 바랍니다.`, "bot");
+  };
 
   function addBubble(content, who="bot") {
     const div = document.createElement('div');
@@ -205,26 +212,18 @@
     chat.scrollTop = chat.scrollHeight;
   }
 
-  addBubble(`안녕하세요, STA교육센터입니다. 
-3일간의 여정을 함께해주셔서 감사합니다. 
-
-안내된 평가 유형(A/B)과 성함을 입력 후 시작해 주세요.`, "bot");
-
   function start() {
     const name = nameInput.value.trim();
     const month = monthSelect.value;
     const type = typeSelect.value;
-
     if (!name || !month || !type) { alert("정보를 모두 입력/선택해주세요."); return; }
 
-    // 타입에 따른 문제 할당
     currentQuestions = (type === 'A') ? QUESTIONS_A : QUESTIONS_B;
-    
     document.getElementById('setupArea').style.display = 'none';
     document.getElementById('questionArea').style.display = 'block';
     document.getElementById('statusBadge').textContent = `${type}형 진행중`;
     
-    addBubble(`${name}님, ${type}타입 평가를 시작합니다.`, "bot");
+    addBubble(`${name}님, ${type}형 평가를 시작합니다.`, "bot");
     renderQuestion();
   }
 
@@ -257,7 +256,6 @@
     const result = score >= 80 ? "PASS" : "FAIL";
     document.getElementById('statusBadge').textContent = result;
     document.getElementById('statusBadge').className = `badge ${score >= 80 ? 'success' : 'danger'}`;
-
     addBubble(`평가가 완료되었습니다.\n나의 점수: ${score}점\n최종 결과: ${result}`, "bot");
 
     try {
@@ -265,17 +263,10 @@
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ 
-          runMonth: monthSelect.value, 
-          examType: typeSelect.value, // ✅ 타입 정보 추가 전송
-          name: nameInput.value, 
-          score: score, 
-          result: result, 
-          answers: userAnswers 
-        })
+        body: JSON.stringify({ runMonth: monthSelect.value, examType: typeSelect.value, name: nameInput.value, score, result, answers: userAnswers })
       });
       addBubble("✅ 응답이 저장되었습니다.", "bot");
-    } catch (e) { addBubble("⚠️ 저장 중 오류가 발생했습니다.", "bot"); }
+    } catch (e) { addBubble("⚠️ 저장 오류 발생", "bot"); }
     reviewBtn.disabled = false;
   }
 
