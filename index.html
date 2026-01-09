@@ -362,13 +362,6 @@
           <select id="runMonth"></select>
         </div>
         <div>
-          <label>문제 타입</label>
-          <select id="type">
-            <option value="A">A 타입</option>
-            <option value="B">B 타입</option>
-          </select>
-        </div>
-        <div>
           <label>Pass 기준</label>
           <input value="80점 이상" disabled />
         </div>
@@ -434,7 +427,7 @@
 /** =========================================================
  *  Google Apps Script Web App Endpoint
  *  ========================================================= */
-const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzRm26PAlD-JY0VIeVXkZg1QuUpJ52WK3rsGHJ_omi7_YGD2XiiV6co_meDZ5IbCKV_qQ/exec";
+const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycbyOx6veFMa7hzfai9o7gMq6QUyLQd_kmtzBgvJ2JTrO_A1TPfrKaORaZ-fJZYwupus/exec";
 
 /** ===== 시험 설정 ===== */
 const PASS_SCORE = 80;
@@ -448,8 +441,8 @@ const QUESTIONS_A = [
   { q: "Q1. 다음 중 일반적인 테스트 목적에 해당하는 것은?", options: ["A. 결함 예방", "B. 결함 수정", "C. 결함 제거", "D. 장애 원인 분석"], answer: 0 },
   { q: `Q2. 회사는 일정 관리 앱을 개발하고 있다. 개발팀은 앱의 핵심 기능인 일정 추가, 수정, 삭제 기능에 대한 테스트를 집중적으로 수행했다. 이 과정에서 동일한 테스트 케이스를 반복적으로 사용했고, 새로운 테스트 케이스를 추가하지 않았다. 앱 출시 후 사용자가 일정을 여러 개 등록할 경우 앱이 종료되는 심각한 오류가 발견되었다.
 다음 중 이 상황을 설명해주는 테스팅 원리는?`, options: ["A. 결함-부재는 오류이다", "B. 완벽한 테스팅은 불가능하다", "C. 테스트 효과는 줄어든다", "D. 테스팅은 정황에 의존적이다"], answer: 2 },
-  { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", options: ["A. 개발 비용이 줄어든다", "b. 팀 내 의사소통과 협업이 강화된다", "C. 출시 일정을 지킬 확률이 높아진다", "D. 독립적인 테스터가 필요 없다"], answer: 1 },
-  { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", options: ["A. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.", "B. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.", "C. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.", "D. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."], answer: 1 },
+  { q: "Q3. 다음 중 전체 팀 접근법에 대한 장점으로 적절한 것은?", options: ["A. 개발 비용이 줄어든다", "B. 팀 내 의사소통과 협업이 강화된다", "C. 출시 일정을 지킬 확률이 높아진다", "D. 독립적인 테스터가 필요 없다"], answer: 1 },
+  { q: "Q4. 다음 중 행위주도개발(BDD)에 대한 설명이 아닌 것은?", options: ["A. 애플리케이션의 기대 동작을 기술적 배경이 적은 이해관계자들도 이해할 수 있는 자연어로 작성한다.", "D. 사용자 스토리의 인수 조건에서 테스트를 도출하여 수행한다.", "C. 자연어 요구사항은 일반적으로 Given/When/Then 의 형태로 작성한다.", "D. BDD 방식은 비즈니스 사용자, 개발자 및 테스터 간의 의사 소통을 촉진한다."], answer: 1 },
   { q: "Q5. 시프트-레프트 접근법에 대한 설명으로 적절한 것은?", options: ["A. 테스팅은 제품 개발이 끝난 후에 수행한다.", "B. 비기능 테스팅은 시스템 레벨 또는 인수 테스트 레벨에서 수행한다.", "C. 코드를 작성하기 전에 테스트 케이스를 작성한다.", "D. 리뷰에 테스터가 참여하지 않아도 된다."], answer: 2 },
   { q: "Q6. 다음 중 분기 커버리지에 대한 설명으로 적절하지 않은 것은?", options: ["A. 분기 테스팅의 커버리지 항목은 분기이다.", "B. 커버리지는 테스트 케이스가 실행한 분기 수를 분기의 총수로 나눈 값으로 측정한다.", "C. 100% 분기 커버리지를 달성하더라도 구문 커버리지는 100%가 아닐 수도 있다.", "D. 분기 테스트 실행으로 모든 결함을 다 찾을 수 있는 것은 아니다."], answer: 2 },
   { q: `Q7. 온라인 상점 운영자의 관점에서 작성된 사용자 스토리의 인수 조건이 다음과 같다:
@@ -469,16 +462,16 @@ const QUESTIONS_B = [
   { q: `Q2. 다음 중 테스팅과 디버깅의 차이점을 가장 잘 설명한 것은?`, options: ["A. 테스팅은 자동화 도구를 사용할 수 있지만, 디버깅은 자동화 도구를 사용할 수 없다.", "B. 테스팅은 개발 초기 단계에서, 디버깅은 개발 후반 단계에서 수행한다. ", "C. 테스팅은 결함을 찾는 활동이고, 디버깅은 결함의 원인을 분석하고 수정하는 활동이다.", "D. 테스팅은 모든 소프트웨어 개발 프로세스에 필수적이지만, 디버깅은 선택적인 활동이다."], answer: 2 },
   { q: "Q3. 다음 중 테스트 실행 단계의 작업산출물은?", options: ["A. 리스크 정보", "B. 테스트 로그", "C. 테스트 환경 요구사항", "D. 테스트 컨디션"], answer: 1 },
   { q: "Q4. 테스팅 관점에서 데브옵스(DevOps)의 이점으로 적절하지 않은 것은?", options: ["A. 빠르고 지속적인 피드백을 제공할 수 있다.", "B. 자동화된 프로세스가 촉진된다.", "C. 리그레션 리스크가 감소한다.", "D. 수동 테스팅의 필요성이 높아진다."], answer: 3 },
-  { q: `Q5. 다음과 같은 특징을 갖는 리뷰 유형은?
-- 저자가 리더가 된다. 
-- 개별 리뷰를 반드시 해야만 하는 것은 아니다. 
-- 프로젝트 참가자들에게 작업 산출물에 대해 교육하는 용도로 사용하기도 한다.`, options: ["A. 워크쓰루", "B. 인스펙션", "C. 기술 리뷰.", "D. 페어 리뷰"], answer: 0 },
+  { q: `Q5. 다음과 같은 특징을 갖는 리뷰 유형은? 
+  - 저자가 리더가 된다. 
+  - 개별 리뷰를 반드시 해야만 하는 것은 아니다. 
+  - 프로젝트 참가자들에게 작업 산출물에 대해 교육하는 용도로 사용하기도 한다.`, options: ["A. 워크쓰루", "B. 인스펙션", "C. 기술 리뷰.", "D. 페어 리뷰"], answer: 0 },
   { q: "Q6. 빠르고 잦은 피드백의 이점으로 적절한 것은?", options: ["A. 산출물에 문제가 없음을 증명할 수 있다.", "B. 요구사항에 대한 오해를 방지할 수 있다.", "C. 요구사항을 자주 변경할 수 있다.", "D. 결함 해결 시간이 빨라진다."], answer: 1 },
   { q: `Q7. 다음 중 경험기반 테스팅의 체크리스트 기반 테스팅을 가장 잘 설명한 것은?`, options: ["A. 체크리스트를 활용해 테스트 컨디션을 확인하는 테스트를 설계, 구현, 실행한다.", "B. 일반적인 항목을 포함해 자동으로 확인할 수 있는 항목까지 최대한 많은 항목을 포함시켜 커버리지를 늘린다.", "C. 독립적으로 작성된 체크리스트는 오랜 기간 수정 없이 사용해도 그 효과를 기대할 수 있다.", "D. 테스팅 커버리지를 빠르게 달성하기 위해 하위 수준으로 작성하는 것이 바람직하다."], answer: 0 },
   { q: "Q8. 다음 중 테스팅 사분면 모델에서 1사분면 (“기술 측면 및 “팀 지원”) 에 해당하는 것은 무엇인가?", options: ["A. 사용성 테스팅", "B. 기능 테스팅", "C. 사용자 인수 테스팅", "D. 단위 통합 테스팅"], answer: 3 },
   { q: "Q9. 다음 중 테스트 준비의 정의로 적절한 것은?", options: ["A. 사용자의 결제 작업 성공률은 80% 이상이 되어야 한다.", "B. 테스트 모델을 작성하기 위한 테스트 베이시스의 가용성 ", "C. 계획된 일정 대비 진척율", "D. 구문 커버리지 100%"], answer: 1 },
   { q: `Q10. 회사는 복잡한 알고리즘을 사용하는 금융 거래 시스템을 개발하고 있다. 이 시스템은 대량의 데이터를 처리하고 실시간으로 거래를 승인해야 하기 때문에 개발팀은 시스템의 성능을 정확하게 측정하고 병목 현상을 파악하여 최적화하려고 한다. 
-이 상황에 가장 적절한 유형의 테스트 도구는 무엇인가?`, options: ["A. 정적 테스팅 도구.", "B. 비기능 테스팅 도구", "C. 관리 도구", "D. 테스트 실행 및 커버리지 도구"], answer: 1 }
+  이 상황에 가장 적절한 유형의 테스트 도구는 무엇인가?`, options: ["A. 정적 테스팅 도구.", "B. 비기능 테스팅 도구", "C. 관리 도구", "D. 테스트 실행 및 커버리지 도구"], answer: 1 }
 ];
 
 const QUESTION_BANK = { A: QUESTIONS_A, B: QUESTIONS_B };
@@ -493,7 +486,6 @@ const optionBar = $("optionBar");
 
 const nameInput = $("name");
 const runMonthSelect = $("runMonth");
-const typeSelect = $("type");
 const startBtn = $("startBtn");
 const setupHint = $("setupHint");
 
@@ -696,6 +688,10 @@ function renderCurrentQuestion(){
 }
 
 
+function pickRandomType(){
+  return Math.random() < 0.5 ? "A" : "B";
+}
+
 function startExam(){
   const nm = nameInput.value.trim();
   if (!nm){
@@ -704,8 +700,10 @@ function startExam(){
   }
   setupHint.textContent = "";
 
-  currentType = typeSelect.value;
   runMonth = runMonthSelect.value;
+
+  // ✅ 문제 타입은 사용자가 선택하지 않고, 시험 시작 시 랜덤으로 자동 배정
+  currentType = pickRandomType();
   startedAtISO = new Date().toISOString();
   finishedAtISO = "";
 
@@ -723,7 +721,7 @@ function startExam(){
   saveStatus.textContent = "";
 
   addBubble("bot",
-    `안녕하세요, ${nm}님!\n응시월: ${runMonth}\n타입: ${currentType}\n총 ${QUESTIONS_PER_TEST}문항입니다.\n문제는 채팅에 표시되고, 보기는 하단에서 선택합니다.`
+    `안녕하세요, ${nm}님!\n응시월: ${runMonth}\n총 ${QUESTIONS_PER_TEST}문항입니다.\n문제는 채팅에 표시되고, 보기는 하단에서 선택합니다.`
   , -1, "intro");
 
   renderCurrentQuestion();
@@ -819,12 +817,20 @@ function renderResult(result){
 }
 
 async function saveToSheet(payload){
+  // ✅ CORS/파일(file://) 환경에서도 최대한 저장되게: 
+  //  1) 일반 fetch(응답 확인 가능) 시도
+  //  2) 실패하면 no-cors로 재시도(요청은 전송되지만 응답 확인은 불가)
   saveStatus.textContent = "💾 응답 저장 중...";
+  const body = JSON.stringify(payload);
+
+  // 1) 정상 CORS 모드 (호스팅된 https 환경에서 권장)
   try{
     const res = await fetch(SUBMIT_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type":"text/plain;charset=utf-8" }, // ✅ preflight 줄이기
-      body: JSON.stringify(payload),
+      body,
+      mode: "cors",
+      redirect: "follow"
     });
 
     let bodyText = "";
@@ -836,8 +842,21 @@ async function saveToSheet(payload){
 
     return { ok: res.ok, status: res.status, text: bodyText };
   }catch(err){
-    saveStatus.textContent = `⚠️ 저장 중 오류: ${err?.message || err}`;
-    return { ok:false, error:String(err) };
+    // 2) file:// 로 직접 열었을 때 'Origin null' CORS로 실패하는 경우가 많음
+    try{
+      await fetch(SUBMIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type":"text/plain;charset=utf-8" },
+        body,
+        mode: "no-cors",     // ✅ 요청 전송 우선
+        redirect: "follow"
+      });
+      saveStatus.textContent = "✅ 저장 요청을 전송했어요. (브라우저가 응답을 읽을 수 없어 확인은 시트에서 해주세요)";
+      return { ok: true, opaque: true };
+    }catch(err2){
+      saveStatus.textContent = `⚠️ 저장 중 오류: ${err2?.message || err2}`;
+      return { ok:false, error:String(err2) };
+    }
   }
 }
 
@@ -850,7 +869,7 @@ async function submitExam(){
 
   const payload = {
     runMonth,
-    type: currentType,
+    exam_type: currentType,
     name: nm,
     startedAt: startedAtISO,
     finishedAt: finishedAtISO,
@@ -888,7 +907,6 @@ retryBtn.addEventListener("click", () => {
 
 backBtn.addEventListener("click", () => {
   nameInput.value = "";
-  typeSelect.value = "A";
   runMonthSelect.value = "2026-01";
 
   setupPanel.classList.remove("hidden");
