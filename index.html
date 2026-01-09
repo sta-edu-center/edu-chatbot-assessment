@@ -340,7 +340,7 @@
   <div class="wrap">
     <div class="topbar">
       <h1 class="title">STA 교육센터 | SW Testing Foundation 이수 평가</h1>
-      <div class="subtitle">문제는 채팅으로, 보기는 하단 선택영역으로 · 10문항 후 제출 → 결과/리뷰 + 스프레드시트 저장</div>
+      <div class="subtitle">총 10문항. 80점 이상 Pass <br> 결과는 자동으로 STA교육센터 DB에 저장됩니다. (저장 될 때까지 잠시 기다려주세요)</div>
     </div>
 
     <!-- Setup -->
@@ -585,7 +585,7 @@ function addBubble(who, text){
   const div = document.createElement("div");
   div.className = `bubble ${who}`;
   div.innerHTML = `
-    <div class="meta">${who === "bot" ? "🤖 BOT" : "🙋 응시자"}</div>
+    <div class="meta">${who === "bot" ? "🤖 문제 출제 bot" : "🙋 응시자"}</div>
     <div>${escapeHtml(text)}</div>
   `;
   chat.appendChild(div);
@@ -808,7 +808,7 @@ async function submitExam(){
     answers: result.details
   };
 
-  addBubble("bot", "제출 완료! 결과를 표시할게요.");
+  addBubble("bot", "응시 완료! 결과를 확인해 주세요.");
   optionBar.classList.add("hidden");
   bottomBar.classList.add("hidden");
   updateLayoutVars();
